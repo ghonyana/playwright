@@ -1,0 +1,20 @@
+# Core Testing Framework
+pytest==8.4.2
+pytest-bdd==8.1.0
+playwright==1.55.0
+pytest-playwright==0.6.2
+pytest-xdist==3.6.1
+pytest-timeout==2.3.1
+pytest-asyncio==0.25.2
+
+# API Testing
+httpx==0.28.1
+pydantic==2.10.5
+
+# Reporting
+allure-pytest==2.15.0
+
+# Utilities
+python-dotenv==1.0.1
+tenacity==9.1.2
+loguru==0.7.3

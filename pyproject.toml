@@ -1,0 +1,186 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "playwright-test-automation"
+version = "1.0.0"
+description = "Enterprise-ready Python test automation framework with Playwright, pytest-bdd, and MCP integration"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Blitzy", email = "team@blitzy.com"}
+]
+keywords = [
+    "testing",
+    "automation",
+    "playwright",
+    "pytest",
+    "bdd",
+    "gherkin",
+    "mcp",
+    "llm"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+dependencies = [
+    "pytest==8.4.2",
+    "pytest-bdd==8.1.0",
+    "playwright==1.55.0",
+    "pytest-playwright==0.6.2",
+    "httpx==0.28.1",
+    "pydantic==2.10.5",
+    "allure-pytest==2.15.0",
+    "python-dotenv==1.0.1",
+    "pytest-xdist==3.6.1",
+    "pytest-timeout==2.3.1",
+    "pytest-asyncio==0.25.2",
+    "tenacity==9.1.2",
+    "loguru==0.7.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff==0.9.3",
+    "mypy==1.14.1",
+    "pre-commit==4.0.1",
+    "pytest-cov==6.0.0",
+    "pytest-httpx==0.35.0",
+    "faker==30.8.2",
+    "pytest-html==4.1.1",
+    "pytest-json-report==1.5.0",
+]
+
+mcp = [
+    "fastapi==0.118.0",
+    "uvicorn[standard]==0.34.0",
+    "pydantic-settings==2.7.0",
+    "python-jose==3.3.0",
+    "passlib==1.7.4",
+    "python-multipart==0.0.20",
+    "sqlalchemy==2.0.38",
+    "alembic==1.14.3",
+    "websockets==14.1",
+]
+
+llm = [
+    "openai==1.59.8",
+    "ollama==0.4.8",
+    "tiktoken==0.9.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/blitzy/playwright-test-automation"
+Repository = "https://github.com/blitzy/playwright-test-automation"
+Documentation = "https://github.com/blitzy/playwright-test-automation/docs"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--disable-warnings",
+]
+markers = [
+    "ui: UI tests using Playwright",
+    "api: API tests using httpx",
+    "integration: Integration tests",
+    "smoke: Smoke tests for critical paths",
+    "slow: Tests that take longer to execute",
+]
+# BDD feature file configuration
+bdd_features_base_dir = "tests/features"
+
+[tool.coverage.run]
+source = ["tests"]
+omit = [
+    "*/tests/*",
+    "*/venv/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+strict_equality = true
+strict_concatenate = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pytest_bdd.*",
+    "playwright.*",
+    "allure.*",
+]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports
+"tests/**/*.py" = ["S101"]  # use of assert
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

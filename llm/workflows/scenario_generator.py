@@ -111,7 +111,7 @@ except ImportError:
     )
 
 try:
-    from pytest_bdd.parser import Feature
+    from pytest_bdd.parser import FeatureParser
 except ImportError:
     raise ImportError(
         "pytest-bdd package is required for Gherkin validation. "
@@ -615,9 +615,12 @@ def validate_gherkin_syntax(gherkin_text: str) -> Tuple[bool, Optional[str]]:
             f.write(gherkin_text)
             temp_path = f.name
         
-        # Parse with pytest-bdd Feature parser
+        # Parse with pytest-bdd FeatureParser
         # This will raise exceptions for any syntax errors
-        Feature.parse(temp_path)
+        basedir = os.path.dirname(temp_path)
+        filename = os.path.basename(temp_path)
+        parser = FeatureParser(basedir, filename)
+        parser.parse()
         
         # If we get here, parsing succeeded
         return (True, None)

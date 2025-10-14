@@ -391,7 +391,7 @@ def assert_url_matches(
         
     Example:
         >>> assert_url_matches(page, r"/dashboard$")
-        >>> assert_url_matches(page, r"/users/\d+", "Should navigate to user detail page")
+        >>> assert_url_matches(page, r"/users/\\d+", "Should navigate to user detail page")
     """
     current_url = page.url
     

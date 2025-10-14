@@ -54,6 +54,7 @@ Usage:
 import pytest
 import allure
 import httpx
+import time
 
 from tests.api_clients.auth_client import AuthAPIClient
 from tests.api_clients.models.auth_models import LoginRequest
@@ -87,8 +88,10 @@ def test_login_api_with_valid_credentials(auth_api: AuthAPIClient, mcp_client: M
         httpx.HTTPError: If API request fails unexpectedly
     """
     # Generate test user via MCP (no hardcoded data per user directive)
+    # Use timestamp to ensure unique email per test run
     with allure.step("Seed test user via MCP"):
-        user = mcp_client.seed_user(role="viewer", email="auth.test@example.com")
+        unique_email = f"auth.test.{int(time.time())}@example.com"
+        user = mcp_client.seed_user(role="viewer", email=unique_email)
         allure.attach(
             f"User ID: {user.get('id')}\nEmail: {user['email']}\nRole: {user['role']}",
             name="Generated Test User",

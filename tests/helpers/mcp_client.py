@@ -240,8 +240,8 @@ class MCPClient:
             }
         """
         payload = {
-            "template": template,
-            "parameters": parameters or {}
+            "template_name": template,
+            "params": parameters or {}
         }
         
         try:

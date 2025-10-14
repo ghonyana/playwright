@@ -218,6 +218,24 @@ def admin_token() -> str:
 
 
 @pytest.fixture(scope="function")
+def auth_api(api_base_url: str):
+    """
+    Authentication API client fixture for login, logout, and token management.
+    
+    Per Agent Action Plan Section 0.4.1: Provides typed API client for authentication
+    endpoints with Pydantic model validation and Allure reporting integration.
+    
+    Args:
+        api_base_url: Base URL for the API from environment
+    
+    Returns:
+        AuthAPIClient: Configured authentication API client instance
+    """
+    from tests.api_clients.auth_client import AuthAPIClient
+    return AuthAPIClient(base_url=api_base_url)
+
+
+@pytest.fixture(scope="function")
 def users_api(api_base_url: str, admin_token: str):
     """
     User management API client fixture with admin authentication.

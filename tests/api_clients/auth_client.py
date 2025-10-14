@@ -367,7 +367,7 @@ class AuthAPIClient(BaseAPIClient):
             request = TokenVerifyRequest(token=token)
             
             response = self.post(
-                endpoint="/auth/verify",
+                endpoint="/auth/verify-token",
                 request_model=request,
                 response_model=TokenVerifyResponse
             )

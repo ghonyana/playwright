@@ -151,10 +151,20 @@ class BaseAPIClient:
         except (AttributeError, RuntimeError):
             elapsed_ms = None
         
+        # Read response body safely (handles streaming responses)
+        try:
+            # Ensure response content is read before accessing text
+            if not response.is_closed:
+                response.read()
+            body_text = response.text[:1000] if response.text else None
+        except (httpx.ResponseNotRead, RuntimeError, AttributeError):
+            # If we can't read the response (e.g., already consumed), use empty body
+            body_text = "<response body not available>"
+        
         response_details = {
             "status_code": response.status_code,
             "headers": dict(response.headers),
-            "body": response.text[:1000] if response.text else None,  # Truncate large responses
+            "body": body_text,  # Truncate large responses
             "elapsed_ms": elapsed_ms
         }
         allure.attach(

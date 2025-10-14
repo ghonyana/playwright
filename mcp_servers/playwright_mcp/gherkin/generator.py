@@ -163,6 +163,7 @@ class GherkinGenerator:
                 feature_name=feature_name,
                 exploration_goal=exploration_goal,
                 exploration_context=exploration_context,
+                exploration_log=exploration_log,
                 additional_context=additional_context
             )
         else:
@@ -193,6 +194,7 @@ class GherkinGenerator:
         feature_name: str,
         exploration_goal: str,
         exploration_context: str,
+        exploration_log: List[Dict[str, Any]],
         additional_context: Optional[Dict[str, Any]]
     ) -> str:
         """Generate scenarios using LLM client.
@@ -204,6 +206,7 @@ class GherkinGenerator:
             feature_name: Name of the feature
             exploration_goal: High-level exploration objective
             exploration_context: Human-readable action sequence
+            exploration_log: Original exploration log for fallback template generation
             additional_context: Optional page structure or accessibility data
         
         Returns:
@@ -234,11 +237,11 @@ Exploration Actions:
             return response
         except Exception as e:
             logger.error(f"LLM generation failed: {e}. Falling back to template-based generation.")
-            # Fallback to template if LLM fails
+            # Fallback to template if LLM fails, using original exploration_log
             return self._generate_with_template(
                 feature_name=feature_name,
                 exploration_goal=exploration_goal,
-                exploration_log=[]  # Will trigger basic template
+                exploration_log=exploration_log
             )
     
     async def _call_llm_generate(self, exploration_log: str) -> str:

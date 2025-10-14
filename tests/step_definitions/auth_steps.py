@@ -73,6 +73,7 @@ from typing import Dict, Any, Optional
 import allure
 import pytest
 from pytest_bdd import given, when, then, scenarios, parsers
+from playwright.sync_api import Page
 
 # Import page objects for UI authentication flows
 from tests.pages.login_page import LoginPage
@@ -102,7 +103,7 @@ scenarios('../features/authentication.feature')
 # and setup/teardown management
 
 @pytest.fixture
-def login_page(page, base_url: str) -> LoginPage:
+def login_page(page: Page, base_url: str) -> LoginPage:
     """
     Initialize LoginPage instance for UI authentication testing.
     
@@ -122,7 +123,7 @@ def login_page(page, base_url: str) -> LoginPage:
 
 
 @pytest.fixture
-def dashboard_page(page, base_url: str) -> DashboardPage:
+def dashboard_page(page: Page, base_url: str) -> DashboardPage:
     """
     Initialize DashboardPage instance for post-authentication interactions.
     
@@ -154,7 +155,7 @@ def auth_api(api_base_url: str) -> AuthAPIClient:
     
     Example:
         @when("the user authenticates via API")
-        def api_auth(auth_api: AuthAPIClient, test_user: Dict[str, Any], auth_token: Dict[str, str]):
+        def api_auth(auth_api: AuthAPIClient, test_user: Dict[str, Any], auth_token: Dict[str, Any]):
             response = auth_api.login(test_user["email"], test_user["password"])
             auth_token["value"] = response.access_token
     """
@@ -195,7 +196,7 @@ def test_user(mcp_client: MCPClient) -> Dict[str, Any]:
 
 
 @pytest.fixture
-def auth_token() -> Dict[str, str]:
+def auth_token() -> Dict[str, Any]:
     """
     Storage fixture for API authentication tokens across step definitions.
     
@@ -207,16 +208,19 @@ def auth_token() -> Dict[str, str]:
         dict: Empty dict for token storage with keys:
             - "value": Access token string
             - "refresh": Refresh token string (optional)
+            - "expires_in": Token expiration time in seconds (int)
+            - "user_id": User ID from token (int)
+            - "role": User role from token (str)
     
     Example:
         @when("the user authenticates via API")
-        def api_auth(auth_api: AuthAPIClient, test_user: Dict[str, Any], auth_token: Dict[str, str]):
+        def api_auth(auth_api: AuthAPIClient, test_user: Dict[str, Any], auth_token: Dict[str, Any]):
             response = auth_api.login(test_user["email"], test_user["password"])
             auth_token["value"] = response.access_token
             auth_token["refresh"] = response.refresh_token
         
         @then("a valid JWT token is returned")
-        def verify_token(auth_token: Dict[str, str]):
+        def verify_token(auth_token: Dict[str, Any]):
             assert "value" in auth_token
             assert len(auth_token["value"]) > 50  # JWT tokens are long strings
     """
@@ -296,7 +300,7 @@ def test_user_with_role(mcp_client: MCPClient, role: str, test_user: Dict[str, A
 
 @allure.step("Given the user is not authenticated")
 @given("the user is not authenticated")
-def user_not_authenticated(page) -> None:
+def user_not_authenticated(page: Page) -> None:
     """
     Verify user has no active session or authentication state.
     
@@ -483,7 +487,7 @@ def user_requests_password_reset(auth_api: AuthAPIClient, email: str) -> None:
 
 @allure.step("When the user authenticates via API")
 @when("the user authenticates via API")
-def authenticate_via_api(auth_api: AuthAPIClient, test_user: Dict[str, Any], auth_token: Dict[str, str]) -> None:
+def authenticate_via_api(auth_api: AuthAPIClient, test_user: Dict[str, Any], auth_token: Dict[str, Any]) -> None:
     """
     Authenticate via REST API and store JWT tokens.
     
@@ -518,7 +522,7 @@ def authenticate_via_api(auth_api: AuthAPIClient, test_user: Dict[str, Any], aut
 def authenticate_via_api_with_remember_me(
     auth_api: AuthAPIClient,
     test_user: Dict[str, Any],
-    auth_token: Dict[str, str]
+    auth_token: Dict[str, Any]
 ) -> None:
     """
     Authenticate via API with extended session duration.
@@ -543,7 +547,7 @@ def authenticate_via_api_with_remember_me(
 
 @allure.step("When the user refreshes the authentication token")
 @when("the user refreshes the authentication token")
-def refresh_auth_token(auth_api: AuthAPIClient, auth_token: Dict[str, str]) -> None:
+def refresh_auth_token(auth_api: AuthAPIClient, auth_token: Dict[str, Any]) -> None:
     """
     Refresh access token using refresh token for session management.
     
@@ -573,7 +577,7 @@ def refresh_auth_token(auth_api: AuthAPIClient, auth_token: Dict[str, str]) -> N
 
 @allure.step("When the user logs out via API")
 @when("the user logs out via API")
-def logout_via_api(auth_api: AuthAPIClient, auth_token: Dict[str, str]) -> None:
+def logout_via_api(auth_api: AuthAPIClient, auth_token: Dict[str, Any]) -> None:
     """
     Invalidate session by logging out via API.
     
@@ -729,7 +733,7 @@ def verify_specific_error_message(login_page: LoginPage, expected_message: str) 
 
 @allure.step("Then the user is redirected to the login page")
 @then("the user is redirected to the login page")
-def verify_login_page_redirect(page) -> None:
+def verify_login_page_redirect(page: Page) -> None:
     """
     Verify redirect to login page after logout.
     
@@ -776,7 +780,7 @@ def verify_dashboard_displayed(dashboard_page: DashboardPage) -> None:
 
 @allure.step("Then a valid JWT token is returned")
 @then("a valid JWT token is returned")
-def verify_jwt_token_returned(auth_token: Dict[str, str]) -> None:
+def verify_jwt_token_returned(auth_token: Dict[str, Any]) -> None:
     """
     Verify JWT access token was received from authentication.
     
@@ -806,7 +810,7 @@ def verify_jwt_token_returned(auth_token: Dict[str, str]) -> None:
 
 @allure.step("Then the token contains the correct user role")
 @then("the token contains the correct user role")
-def verify_token_contains_role(auth_token: Dict[str, str], test_user: Dict[str, Any]) -> None:
+def verify_token_contains_role(auth_token: Dict[str, Any], test_user: Dict[str, Any]) -> None:
     """
     Verify JWT token response includes correct user role.
     
@@ -839,7 +843,7 @@ def verify_token_contains_role(auth_token: Dict[str, str], test_user: Dict[str, 
 
 @allure.step("Then the token should expire in {seconds:d} seconds")
 @then(parsers.parse("the token should expire in {seconds:d} seconds"))
-def verify_token_expiration(auth_token: Dict[str, str], seconds: int) -> None:
+def verify_token_expiration(auth_token: Dict[str, Any], seconds: int) -> None:
     """
     Verify token expiration time matches expected duration.
     
@@ -899,7 +903,7 @@ def verify_auth_failure_status_code(auth_api: AuthAPIClient, status_code: int) -
 
 @allure.step("Then a new access token is returned")
 @then("a new access token is returned")
-def verify_new_access_token(auth_token: Dict[str, str]) -> None:
+def verify_new_access_token(auth_token: Dict[str, Any]) -> None:
     """
     Verify token refresh returned a new access token.
     
@@ -921,7 +925,7 @@ def verify_new_access_token(auth_token: Dict[str, str]) -> None:
 
 @allure.step("Then the token should be invalidated")
 @then("the token should be invalidated")
-def verify_token_invalidated(auth_api: AuthAPIClient, auth_token: Dict[str, str]) -> None:
+def verify_token_invalidated(auth_api: AuthAPIClient, auth_token: Dict[str, Any]) -> None:
     """
     Verify token is no longer valid after logout.
     

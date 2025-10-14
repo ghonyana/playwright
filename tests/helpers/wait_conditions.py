@@ -69,6 +69,9 @@ def wait_for_element_count(
                 f"but found {actual_count}"
             )
         return True
+    except TimeoutError:
+        # Re-raise our own TimeoutErrors without modification
+        raise
     except Exception as e:
         actual_count = page.locator(selector).count()
         raise TimeoutError(
@@ -116,6 +119,9 @@ def wait_for_text_to_appear(
         if text not in page_content:
             raise TimeoutError(f"Text '{text}' not found in page content")
         return True
+    except TimeoutError:
+        # Re-raise our own TimeoutErrors without modification
+        raise
     except Exception as e:
         raise TimeoutError(
             f"Timeout waiting for text '{text}' to appear. Timeout: {timeout}ms"
@@ -145,7 +151,7 @@ def wait_for_url_pattern(
     
     Example:
         # Wait for any user profile URL
-        wait_for_url_pattern(page, r"/users/\d+/profile")
+        wait_for_url_pattern(page, r"/users/\\d+/profile")
     """
     compiled_pattern = re.compile(pattern)
     start_time = time.time()

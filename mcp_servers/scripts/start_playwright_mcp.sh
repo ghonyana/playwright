@@ -4,7 +4,7 @@
 # Playwright MCP Server Startup Script (Unix/Linux/macOS)
 #
 # Purpose: Start the Playwright MCP server for LLM-driven browser exploration
-#          and automated test scenario generation
+#          and automated Gherkin scenario generation
 #
 # Usage:
 #   ./start_playwright_mcp.sh              # Start with default settings
@@ -57,6 +57,7 @@ print_banner() {
     echo ""
     echo -e "${YELLOW}⚠️  WARNING: This is a DEVELOPMENT-ONLY server${NC}"
     echo -e "${YELLOW}   NOT intended for CI/CD pipelines or production use${NC}"
+    echo -e "${YELLOW}   For CI/CD testing, use the FastAPI MCP server instead${NC}"
     echo ""
 }
 

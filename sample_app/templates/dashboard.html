@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="User Dashboard - Test Automation Sample Application">
+    <title>Dashboard - Sample Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Header Section with User Information and Logout -->
+    <header role="banner" class="site-header">
+        <div class="header-container">
+            <div class="branding">
+                <h1 class="site-title">Sample Application</h1>
+            </div>
+            
+            <div class="user-info-section">
+                <span class="welcome-message" data-testid="welcome-message" aria-label="Welcome message">
+                    Welcome, {{ user.name if user.name else 'User' }}
+                </span>
+                
+                <a href="/profile" 
+                   role="link" 
+                   aria-label="View Profile" 
+                   data-testid="profile-link"
+                   class="profile-link">
+                    Profile
+                </a>
+                
+                <button type="button" 
+                        role="button" 
+                        aria-label="Log Out" 
+                        data-testid="logout-button"
+                        class="logout-button"
+                        onclick="window.location.href='/logout'">
+                    Log Out
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Menu -->
+    <nav role="navigation" 
+         aria-label="Main navigation" 
+         data-testid="main-navigation"
+         class="main-nav">
+        <ul class="nav-list" role="list">
+            <li class="nav-item">
+                <a href="/dashboard" 
+                   role="link" 
+                   aria-current="page" 
+                   data-testid="nav-dashboard"
+                   class="nav-link active">
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/users" 
+                   role="link" 
+                   data-testid="nav-users"
+                   class="nav-link">
+                    Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/settings" 
+                   role="link" 
+                   data-testid="nav-settings"
+                   class="nav-link">
+                    Settings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/reports" 
+                   role="link" 
+                   data-testid="nav-reports"
+                   class="nav-link">
+                    Reports
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Flash Messages Section -->
+    {% if messages %}
+    <div class="flash-messages" role="alert" aria-live="polite" data-testid="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}" data-testid="flash-message-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Dashboard Content -->
+    <main role="main" class="main-content">
+        <div class="dashboard-container">
+            
+            <!-- Page Title -->
+            <div class="page-header">
+                <h1 class="page-title" data-testid="page-title">Dashboard</h1>
+                <p class="page-subtitle" data-testid="page-subtitle">
+                    Overview of your account and system statistics
+                </p>
+            </div>
+
+            <!-- Dashboard Statistics Section -->
+            <section class="stats-section" aria-label="Dashboard Statistics">
+                <h2 class="section-title visually-hidden">Statistics</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card" data-testid="stat-total-users">
+                        <div class="stat-icon" aria-hidden="true">👥</div>
+                        <div class="stat-content">
+                            <h3 class="stat-label">Total Users</h3>
+                            <p class="stat-value" data-testid="stat-total-users-value">
+                                {{ total_users if total_users is defined else '—' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" data-testid="stat-active-sessions">
+                        <div class="stat-icon" aria-hidden="true">🔐</div>
+                        <div class="stat-content">
+                            <h3 class="stat-label">Active Sessions</h3>
+                            <p class="stat-value" data-testid="stat-active-sessions-value">
+                                {{ active_sessions if active_sessions is defined else '—' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" data-testid="stat-pending-tasks">
+                        <div class="stat-icon" aria-hidden="true">📋</div>
+                        <div class="stat-content">
+                            <h3 class="stat-label">Pending Tasks</h3>
+                            <p class="stat-value" data-testid="stat-pending-tasks-value">
+                                {{ pending_tasks if pending_tasks is defined else '—' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" data-testid="stat-notifications">
+                        <div class="stat-icon" aria-hidden="true">🔔</div>
+                        <div class="stat-content">
+                            <h3 class="stat-label">Notifications</h3>
+                            <p class="stat-value" data-testid="stat-notifications-value">
+                                {{ notifications if notifications is defined else '—' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- User Information Section -->
+            <section class="user-details-section" aria-labelledby="user-details-heading">
+                <h2 id="user-details-heading" class="section-title">Your Account Information</h2>
+                
+                <div class="user-details-card" data-testid="user-details-card">
+                    <dl class="details-list">
+                        <div class="detail-row">
+                            <dt class="detail-label">Name:</dt>
+                            <dd class="detail-value" data-testid="user-name">
+                                {{ user.name if user.name else 'Not provided' }}
+                            </dd>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <dt class="detail-label">Email:</dt>
+                            <dd class="detail-value" data-testid="user-email">
+                                {{ user.email if user.email else 'Not provided' }}
+                            </dd>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <dt class="detail-label">Role:</dt>
+                            <dd class="detail-value" data-testid="user-role">
+                                <span class="role-badge role-{{ user.role if user.role else 'unknown' }}">
+                                    {{ user.role|capitalize if user.role else 'Unknown' }}
+                                </span>
+                            </dd>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <dt class="detail-label">Member Since:</dt>
+                            <dd class="detail-value" data-testid="user-member-since">
+                                {{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'Unknown' }}
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+            </section>
+
+            <!-- Quick Actions Section -->
+            <section class="actions-section" aria-labelledby="actions-heading">
+                <h2 id="actions-heading" class="section-title">Quick Actions</h2>
+                
+                <div class="actions-grid">
+                    {% if user.role == 'admin' or user.is_admin %}
+                    <button type="button"
+                            role="button"
+                            aria-label="Create New User"
+                            data-testid="create-user-button"
+                            class="action-button action-primary"
+                            onclick="window.location.href='/users/new'">
+                        <span class="button-icon" aria-hidden="true">➕</span>
+                        <span class="button-text">Create New User</span>
+                    </button>
+                    {% endif %}
+                    
+                    <a href="/reports"
+                       role="link"
+                       aria-label="View Reports"
+                       data-testid="reports-link"
+                       class="action-button action-secondary">
+                        <span class="button-icon" aria-hidden="true">📊</span>
+                        <span class="button-text">View Reports</span>
+                    </a>
+                    
+                    <a href="/settings"
+                       role="link"
+                       aria-label="Manage Settings"
+                       data-testid="settings-link"
+                       class="action-button action-secondary">
+                        <span class="button-icon" aria-hidden="true">⚙️</span>
+                        <span class="button-text">Manage Settings</span>
+                    </a>
+                    
+                    <a href="/profile/edit"
+                       role="link"
+                       aria-label="Edit Profile"
+                       data-testid="edit-profile-link"
+                       class="action-button action-secondary">
+                        <span class="button-icon" aria-hidden="true">✏️</span>
+                        <span class="button-text">Edit Profile</span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Recent Activity Section (Admin Only) -->
+            {% if user.role == 'admin' or user.is_admin %}
+            <section class="activity-section" aria-labelledby="activity-heading">
+                <h2 id="activity-heading" class="section-title">Recent Activity</h2>
+                
+                <div class="activity-list" data-testid="activity-list">
+                    {% if recent_activities %}
+                        {% for activity in recent_activities %}
+                        <div class="activity-item" data-testid="activity-item-{{ loop.index }}">
+                            <div class="activity-icon" aria-hidden="true">📌</div>
+                            <div class="activity-content">
+                                <p class="activity-description">{{ activity.description }}</p>
+                                <time class="activity-timestamp" datetime="{{ activity.timestamp }}">
+                                    {{ activity.timestamp.strftime('%B %d, %Y at %I:%M %p') if activity.timestamp else 'Unknown' }}
+                                </time>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-activity-message" data-testid="no-activity-message">
+                            No recent activity to display.
+                        </p>
+                    {% endif %}
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- System Status Section -->
+            <section class="system-status-section" aria-labelledby="system-status-heading">
+                <h2 id="system-status-heading" class="section-title">System Status</h2>
+                
+                <div class="status-grid">
+                    <div class="status-item" data-testid="status-api">
+                        <span class="status-indicator status-operational" aria-label="API Status: Operational"></span>
+                        <span class="status-label">API Services</span>
+                        <span class="status-value">Operational</span>
+                    </div>
+                    
+                    <div class="status-item" data-testid="status-database">
+                        <span class="status-indicator status-operational" aria-label="Database Status: Operational"></span>
+                        <span class="status-label">Database</span>
+                        <span class="status-value">Operational</span>
+                    </div>
+                    
+                    <div class="status-item" data-testid="status-authentication">
+                        <span class="status-indicator status-operational" aria-label="Authentication Status: Operational"></span>
+                        <span class="status-label">Authentication</span>
+                        <span class="status-value">Operational</span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer role="contentinfo" class="site-footer">
+        <div class="footer-container">
+            <p class="footer-text">
+                &copy; 2024 Sample Application - Test Automation Framework Demo
+            </p>
+            <nav role="navigation" aria-label="Footer navigation" class="footer-nav">
+                <ul class="footer-links" role="list">
+                    <li><a href="/help" data-testid="footer-help">Help</a></li>
+                    <li><a href="/privacy" data-testid="footer-privacy">Privacy</a></li>
+                    <li><a href="/terms" data-testid="footer-terms">Terms</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+
+    <!-- Hidden elements for testing purposes -->
+    <div class="visually-hidden" aria-hidden="true">
+        <span data-testid="current-user-id">{{ user.id if user.id else '' }}</span>
+        <span data-testid="current-user-role">{{ user.role if user.role else '' }}</span>
+    </div>
+</body>
+</html>

@@ -250,7 +250,8 @@ def _validate_exports():
     Raises:
         AssertionError: If any component in __all__ is not available in the module
     """
-    current_module = __import__(__name__)
+    import sys
+    current_module = sys.modules[__name__]
     for component_name in __all__:
         if not hasattr(current_module, component_name):
             raise AssertionError(

@@ -1,14 +1,19 @@
 # Include production dependencies
 -r requirements.txt
 
-# Development and Quality Tools
-ruff==0.9.3
-mypy==1.14.1
-pre-commit==4.0.1
-pytest-cov==6.0.0
-pytest-html==4.1.1
-pytest-json-report==1.5.0
+# Development and Quality Tools (Section 0.3.7)
+ruff==0.9.3              # Fast Python linter and formatter (replaces flake8, pylint, isort)
+mypy==1.14.1             # Static type checking
+pre-commit==4.0.1        # Git pre-commit hook management
+pytest-cov==6.0.0        # Code coverage reporting
+black==24.10.0           # Code formatting (alternative to ruff format)
+isort==5.13.2            # Import sorting
 
-# Testing Helpers
-pytest-httpx==0.35.0
-faker==30.8.2
+# Enhanced Testing Utilities
+pytest-xdist==3.6.1      # Parallel test execution
+pytest-httpx==0.35.0     # httpx mocking fixture for tests
+faker==34.2.0            # Realistic test data generation
+
+# Additional Reporting Tools (Section 0.3.6)
+pytest-html==4.1.1       # Fallback HTML reporting
+pytest-json-report==1.5.0  # JSON test results export

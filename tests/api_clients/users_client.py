@@ -156,11 +156,13 @@ class UsersAPIClient(BaseAPIClient):
             user = users_api.create_user(request)
             print(f"Created user {user.id} with email {user.email}")
         """
-        return self.post(
+        response = self.post(
             endpoint="/users",
             request_model=request,
             response_model=UserResponse
         )
+        assert response is not None, "Create user response should not be None"
+        return response
     
     @allure.step("Get user by ID={user_id}")
     def get_user(self, user_id: str) -> UserResponse:
@@ -451,10 +453,12 @@ class UsersAPIClient(BaseAPIClient):
             activated = users_api.activate_user(new_user.id)
             assert activated.is_active is True
         """
-        return self.post(
+        response = self.post(
             endpoint=f"/users/{user_id}/activate",
             response_model=UserResponse
         )
+        assert response is not None, "Activate user response should not be None"
+        return response
     
     @allure.step("Deactivate user {user_id}")
     def deactivate_user(self, user_id: str) -> UserResponse:
@@ -497,7 +501,9 @@ class UsersAPIClient(BaseAPIClient):
                 auth_api.login(email=deactivated.email, password="original_password")
             assert exc_info.value.response.status_code == 401
         """
-        return self.post(
+        response = self.post(
             endpoint=f"/users/{user_id}/deactivate",
             response_model=UserResponse
         )
+        assert response is not None, "Expected response from deactivate_user endpoint"
+        return response

@@ -65,9 +65,11 @@ from tests.helpers.mcp_client import MCPClient
 # SCENARIO LOADING
 # ============================================================================
 
-# Load all API operation scenarios from feature file
+# Load all API operation scenarios from technical API testing feature file
 # Per pytest-bdd documentation: scenarios() discovers and registers all scenarios
-scenarios('../features/api_operations.feature')
+# This feature file contains technical, API-focused scenarios that match the
+# step definitions in this module (role-based user creation, HTTP status validation, etc.)
+scenarios('../features/api_testing_technical.feature')
 
 
 # ============================================================================

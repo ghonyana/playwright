@@ -644,15 +644,16 @@ class ModalComponent(BasePage):
         """
         Assert that the modal contains specific text in its title or body.
         
-        This method searches for text in both the modal title and description,
-        providing a comprehensive verification that expected content is displayed.
+        This method uses Playwright's expect assertion with to_contain_text() to verify
+        that expected content is displayed in the modal dialog. The assertion provides
+        auto-waiting and retry logic for reliable verification.
         
         Args:
             text: Expected text to find in modal
             case_sensitive: Whether the text search should be case-sensitive (default: False)
         
         Raises:
-            AssertionError: If text is not found in modal title or description
+            AssertionError: If text is not found in modal container within timeout
         
         Example:
             ```python
@@ -662,27 +663,26 @@ class ModalComponent(BasePage):
             ```
         """
         try:
-            # Get modal title and content
-            title = self.get_modal_title()
-            content = self.get_modal_content()
-            
-            # Combine title and content for searching
-            full_modal_text = f"{title} {content}"
-            
-            # Perform case-insensitive search if requested
-            if not case_sensitive:
-                text = text.lower()
-                full_modal_text = full_modal_text.lower()
-            
-            # Assert text is present
-            if text not in full_modal_text:
-                raise AssertionError(
-                    f"Expected text '{text}' not found in modal. "
-                    f"Modal title: '{title}', Modal content: '{content}'"
-                )
+            # Use Playwright's expect with to_contain_text for reliable assertion
+            # This provides auto-waiting and retry logic
+            if case_sensitive:
+                # For case-sensitive, get text and do manual comparison
+                # since Playwright's to_contain_text is case-insensitive by default
+                title = self.get_modal_title()
+                content = self.get_modal_content()
+                full_modal_text = f"{title} {content}"
+                
+                if text not in full_modal_text:
+                    raise AssertionError(
+                        f"Expected text '{text}' not found in modal (case-sensitive). "
+                        f"Modal title: '{title}', Modal content: '{content}'"
+                    )
+            else:
+                # Use expect with to_contain_text for case-insensitive matching
+                expect(self.modal_container).to_contain_text(text)
             
             allure.attach(
-                f"Verified modal contains text: '{text}'",
+                f"Verified modal contains text: '{text}' (case_sensitive={case_sensitive})",
                 name="Modal Verification",
                 attachment_type=allure.attachment_type.TEXT
             )
@@ -690,4 +690,41 @@ class ModalComponent(BasePage):
         except Exception as e:
             self.capture_screenshot("Modal Text Verification Failed", full_page=True)
             raise
+    
+    @allure.step("Verify modal title is exactly: {expected_title}")
+    def verify_modal_title_exact(self, expected_title: str) -> None:
+        """
+        Assert that the modal title exactly matches the expected text.
+        
+        This method uses Playwright's expect assertion with to_have_text() to verify
+        the modal title contains exactly the expected text (no partial matching).
+        
+        Args:
+            expected_title: Exact text expected in the modal title
+        
+        Raises:
+            AssertionError: If modal title doesn't exactly match expected text
+        
+        Example:
+            ```python
+            modal.wait_for_modal_open()
+            modal.verify_modal_title_exact("Delete Account")
+            ```
+        """
+        try:
+            # Use expect with to_have_text for exact text matching
+            expect(self.modal_title).to_have_text(expected_title)
+            
+            allure.attach(
+                f"Verified modal title exactly matches: '{expected_title}'",
+                name="Modal Title Verification",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            
+        except Exception as e:
+            self.capture_screenshot("Modal Title Verification Failed", full_page=True)
+            actual_title = self.modal_title.inner_text() if self.modal_title.count() > 0 else "N/A"
+            raise AssertionError(
+                f"Expected modal title to be '{expected_title}', but got '{actual_title}'"
+            ) from e
 

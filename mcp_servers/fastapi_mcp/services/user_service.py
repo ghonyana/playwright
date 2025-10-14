@@ -357,12 +357,23 @@ class UserService:
             admin_token = await self._get_admin_token(client)
             
             # Prepare user creation payload
+            # Note: Sample app expects "name" field (single field), not first_name/last_name
+            full_name = f"{first_name} {last_name}" if first_name and last_name else (first_name or last_name or "Test User")
+            
+            # Map MCP roles to sample app roles
+            # MCP: admin, editor, viewer -> Sample App: admin, moderator, customer
+            role_mapping = {
+                "admin": "admin",
+                "editor": "moderator",
+                "viewer": "customer"
+            }
+            app_role = role_mapping.get(role.value.lower(), "customer")
+            
             user_payload = {
                 "email": email,
                 "password": password,
-                "first_name": first_name,
-                "last_name": last_name,
-                "role": role.value
+                "name": full_name,
+                "role": app_role
             }
             
             # Merge custom attributes if provided
@@ -386,12 +397,14 @@ class UserService:
                 response.raise_for_status()
                 
                 # Parse created user data
-                user_data = response.json()
+                # Sample app returns: {"data": {"id": "...", ...}, "status": "success"}
+                response_json = response.json()
+                user_data = response_json.get("data", response_json)  # Handle both nested and flat responses
                 user_id = user_data.get("id") or user_data.get("user_id")
                 
                 if not user_id:
                     raise RuntimeError(
-                        f"User creation response missing ID. Response: {user_data}"
+                        f"User creation response missing ID. Response: {response_json}"
                     )
                 
                 # Track created user for cleanup
@@ -400,17 +413,18 @@ class UserService:
                 
                 logger.info(
                     f"Successfully created test user: user_id={user_id}, "
-                    f"email={email}, role={role.value}"
+                    f"email={email}, role={app_role} (requested: {role.value})"
                 )
                 
                 # Return SeedUserResponse with all user details
+                # Note: Return app_role (mapped role) not the original MCP role
                 return SeedUserResponse(
                     user_id=user_id,
                     email=email,
                     password=password,
                     first_name=first_name,
                     last_name=last_name,
-                    role=role,
+                    role=app_role,  # Return the actual role in the application
                     created_at=creation_time
                 )
                 

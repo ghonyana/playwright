@@ -144,9 +144,9 @@ class SeedUserResponse(BaseModel):
         None,
         description="Last name of the created user"
     )
-    role: UserRole = Field(
+    role: str = Field(
         ...,
-        description="Assigned role for the created user"
+        description="Assigned role for the created user (actual role in application)"
     )
     created_at: datetime = Field(
         ...,

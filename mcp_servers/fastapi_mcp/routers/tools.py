@@ -83,10 +83,12 @@ async def seed_user(
         result = await user_service.create_test_user(
             role=request.role,
             email=request.email,
-            name=request.name,
+            first_name=request.first_name,
+            last_name=request.last_name,
             custom_attributes=request.custom_attributes
         )
-        return SeedUserResponse(**result)
+        # result is already a SeedUserResponse, return directly
+        return result
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

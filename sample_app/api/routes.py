@@ -503,20 +503,36 @@ def login():
             # Note: In production, use constant-time comparison for passwords
             return _error_response('Invalid email or password', 401, 'invalid_credentials')
         
-        # Generate authentication token
-        token = str(uuid4())
+        # Generate authentication tokens
+        access_token = str(uuid4())
+        refresh_token = str(uuid4())
         expires_at = datetime.utcnow() + TOKEN_EXPIRATION
         
-        _tokens[token] = {
+        _tokens[access_token] = {
             'user_id': user['id'],
-            'expires_at': expires_at
+            'expires_at': expires_at,
+            'token_type': 'access'
         }
         
-        return _success_response({
-            'token': token,
-            'user': _sanitize_user(user),
-            'expires_in': int(TOKEN_EXPIRATION.total_seconds())
-        })
+        _tokens[refresh_token] = {
+            'user_id': user['id'],
+            'expires_at': expires_at + timedelta(days=7),  # Refresh token lasts longer
+            'token_type': 'refresh'
+        }
+        
+        # Return response compatible with test expectations
+        response_data = {
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+            'token_type': 'Bearer',
+            'expires_in': int(TOKEN_EXPIRATION.total_seconds()),
+            'expires_at': expires_at.isoformat() + 'Z',
+            'user_id': user['id'],
+            'email': user['email'],
+            'role': user['role']
+        }
+        
+        return jsonify(response_data), 200
 
 
 @api_bp.route('/auth/logout', methods=['POST'])
@@ -555,6 +571,177 @@ def logout():
         _tokens.pop(token, None)
     
     return _success_response({'message': 'Logged out successfully'})
+
+
+@api_bp.route('/auth/refresh', methods=['POST'])
+def refresh_token():
+    """
+    POST /api/auth/refresh - Refresh access token using refresh token.
+    
+    Request Body:
+        {
+            "refresh_token": "uuid-refresh-token-string"
+        }
+        
+    Returns:
+        200: New access token generated
+        400: Missing refresh token
+        401: Invalid or expired refresh token
+        
+    Example Response:
+        {
+            "access_token": "new-uuid-token",
+            "refresh_token": "new-refresh-token (if rotation enabled)",
+            "token_type": "Bearer",
+            "expires_in": 3600,
+            "expires_at": "2024-01-15T12:30:00Z"
+        }
+    """
+    # Parse request body
+    if not request.is_json:
+        return _error_response('Content-Type must be application/json', 400, 'invalid_content_type')
+    
+    data = request.get_json()
+    refresh_token = data.get('refresh_token')
+    
+    if not refresh_token:
+        return _error_response('Refresh token is required', 400, 'missing_token')
+    
+    # Validate refresh token
+    with _data_lock:
+        token_data = _tokens.get(refresh_token)
+        
+        if not token_data or token_data.get('token_type') != 'refresh':
+            return _error_response('Invalid refresh token', 401, 'invalid_token')
+        
+        # Check expiration
+        if datetime.utcnow() > token_data['expires_at']:
+            del _tokens[refresh_token]
+            return _error_response('Refresh token has expired', 401, 'expired_token')
+        
+        # Generate new access token
+        user_id = token_data['user_id']
+        user = _users.get(user_id)
+        
+        if not user:
+            return _error_response('User not found', 401, 'user_not_found')
+        
+        new_access_token = str(uuid4())
+        new_expires_at = datetime.utcnow() + TOKEN_EXPIRATION
+        
+        _tokens[new_access_token] = {
+            'user_id': user_id,
+            'expires_at': new_expires_at,
+            'token_type': 'access'
+        }
+        
+        response_data = {
+            'access_token': new_access_token,
+            'token_type': 'Bearer',
+            'expires_in': int(TOKEN_EXPIRATION.total_seconds()),
+            'expires_at': new_expires_at.isoformat() + 'Z'
+        }
+        
+        return jsonify(response_data), 200
+
+
+@api_bp.route('/auth/password-reset', methods=['POST'])
+def password_reset_request():
+    """
+    POST /api/auth/password-reset - Request password reset email.
+    
+    Request Body:
+        {
+            "email": "user@example.com"
+        }
+        
+    Returns:
+        200: Password reset email sent (always returns success for security)
+        400: Missing email
+        
+    Example Response:
+        {
+            "message": "Password reset email sent",
+            "email": "user@example.com"
+        }
+    """
+    if not request.is_json:
+        return _error_response('Content-Type must be application/json', 400, 'invalid_content_type')
+    
+    data = request.get_json()
+    email = data.get('email')
+    
+    if not email:
+        return _error_response('Email is required', 400, 'missing_email')
+    
+    # For security, always return success even if user doesn't exist
+    # In a real app, this would send an email with a reset link
+    response_data = {
+        'message': 'Password reset email sent',
+        'email': email,
+        'reset_token_expires_in': 3600  # 1 hour expiration
+    }
+    
+    return jsonify(response_data), 200
+
+
+@api_bp.route('/auth/verify-token', methods=['POST'])
+def verify_token():
+    """
+    POST /api/auth/verify-token - Verify if a token is valid.
+    
+    Request Body:
+        {
+            "token": "uuid-token-string"
+        }
+        
+    Returns:
+        200: Token is valid
+        400: Missing token
+        401: Token is invalid or expired
+        
+    Example Response (valid):
+        {
+            "valid": true,
+            "user_id": "user-123",
+            "expires_at": "2024-01-15T12:30:00Z"
+        }
+        
+    Example Response (invalid):
+        {
+            "valid": false
+        }
+    """
+    if not request.is_json:
+        return _error_response('Content-Type must be application/json', 400, 'invalid_content_type')
+    
+    data = request.get_json()
+    token = data.get('token')
+    
+    if not token:
+        return _error_response('Token is required', 400, 'missing_token')
+    
+    # Validate token
+    with _data_lock:
+        token_data = _tokens.get(token)
+        
+        if not token_data:
+            response_data = {'valid': False}
+            return jsonify(response_data), 200
+        
+        # Check expiration
+        if datetime.utcnow() > token_data['expires_at']:
+            del _tokens[token]
+            response_data = {'valid': False}
+            return jsonify(response_data), 200
+        
+        response_data = {
+            'valid': True,
+            'user_id': token_data['user_id'],
+            'expires_at': token_data['expires_at'].isoformat() + 'Z'
+        }
+        
+        return jsonify(response_data), 200
 
 
 # ============================================================================

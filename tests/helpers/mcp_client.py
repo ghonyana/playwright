@@ -69,7 +69,7 @@ class MCPClient:
             follow_redirects=True
         )
     
-    def health_check(self) -> dict:
+    def health_check(self) -> dict[str, Any]:
         """
         Verify MCP server is available and responding.
         
@@ -100,7 +100,7 @@ class MCPClient:
         try:
             response = self.client.get("/health")
             response.raise_for_status()
-            return response.json()
+            return response.json()  # type: ignore[no-any-return]
         except httpx.ConnectError as e:
             raise httpx.ConnectError(
                 f"Cannot connect to MCP server at {self.base_url}. "
@@ -117,7 +117,7 @@ class MCPClient:
         role: str,
         email: Optional[str] = None,
         attributes: Optional[Dict[str, Any]] = None
-    ) -> dict:
+    ) -> dict[str, Any]:
         """
         Create test user via MCP server with deterministic, non-conflicting data.
         
@@ -176,7 +176,7 @@ class MCPClient:
         try:
             response = self.client.post("/tools/seed_user", json=payload)
             response.raise_for_status()
-            return response.json()
+            return response.json()  # type: ignore[no-any-return]
         except httpx.HTTPStatusError as e:
             raise httpx.HTTPError(
                 f"Failed to seed user with role '{role}'. "
@@ -188,7 +188,7 @@ class MCPClient:
         self,
         template: str,
         parameters: Optional[Dict[str, Any]] = None
-    ) -> dict:
+    ) -> dict[str, Any]:
         """
         Generate API request payload from template with realistic test data.
         
@@ -251,8 +251,8 @@ class MCPClient:
             
             # MCP server returns {"payload": {...}}, extract the payload
             if isinstance(result, dict) and "payload" in result:
-                return result["payload"]
-            return result
+                return result["payload"]  # type: ignore[no-any-return]
+            return result  # type: ignore[no-any-return]
             
         except httpx.HTTPStatusError as e:
             raise httpx.HTTPError(
@@ -261,7 +261,7 @@ class MCPClient:
                 f"Response: {e.response.text}"
             ) from e
     
-    def reset_env(self) -> dict:
+    def reset_env(self) -> dict[str, Any]:
         """
         Reset test environment to known-good state.
         
@@ -305,7 +305,7 @@ class MCPClient:
         try:
             response = self.client.post("/tools/reset_env")
             response.raise_for_status()
-            return response.json()
+            return response.json()  # type: ignore[no-any-return]
         except httpx.HTTPStatusError as e:
             raise httpx.HTTPError(
                 f"Failed to reset test environment. "
@@ -318,7 +318,7 @@ class MCPClient:
         self,
         entity_type: str,
         filters: Optional[Dict[str, Any]] = None
-    ) -> dict:
+    ) -> dict[str, Any]:
         """
         Query current test environment state for verification.
         
@@ -371,7 +371,7 @@ class MCPClient:
         try:
             response = self.client.post("/tools/query_state", json=payload)
             response.raise_for_status()
-            return response.json()
+            return response.json()  # type: ignore[no-any-return]
         except httpx.HTTPStatusError as e:
             raise httpx.HTTPError(
                 f"Failed to query state for entity_type '{entity_type}'. "
@@ -399,7 +399,7 @@ class MCPClient:
         """
         self.client.close()
     
-    def __enter__(self):
+    def __enter__(self) -> "MCPClient":
         """
         Context manager entry point.
         
@@ -413,7 +413,7 @@ class MCPClient:
         """
         return self
     
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """
         Context manager exit point - ensures connection cleanup.
         

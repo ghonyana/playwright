@@ -67,6 +67,7 @@ from typing import Dict, Any, Optional
 
 import allure
 import pytest
+from playwright.sync_api import Page
 from pytest_bdd import given, when, then, parsers, scenarios
 
 from tests.pages.user_management_page import UserManagementPage
@@ -90,7 +91,7 @@ scenarios('../features/user_management.feature')
 # ============================================================================
 
 @pytest.fixture
-def user_management_page(page, base_url) -> UserManagementPage:
+def user_management_page(page: Page, base_url: str) -> UserManagementPage:
     """
     Pytest fixture providing UserManagementPage instance for UI-based user operations.
     
@@ -114,7 +115,7 @@ def user_management_page(page, base_url) -> UserManagementPage:
 
 
 @pytest.fixture
-def user_profile_page(page, base_url) -> UserProfilePage:
+def user_profile_page(page: Page, base_url: str) -> UserProfilePage:
     """
     Pytest fixture providing UserProfilePage instance for profile editing operations.
     
@@ -138,7 +139,7 @@ def user_profile_page(page, base_url) -> UserProfilePage:
 
 
 @pytest.fixture
-def users_api(api_base_url, auth_token) -> UsersAPIClient:
+def users_api(api_base_url: str, auth_token: Optional[str]) -> UsersAPIClient:
     """
     Pytest fixture providing UsersAPIClient for API-based user operations.
     
@@ -311,11 +312,12 @@ def create_user_precondition(
     # Store user data for subsequent steps
     existing_user.update(user)
     
+    auth_token = user.get('auth_token')
     allure.attach(
         f"User ID: {user.get('id')}\n"
         f"Email: {user.get('email')}\n"
         f"Role: {user.get('role')}\n"
-        f"Auth Token: {user.get('auth_token')[:20]}...",
+        f"Auth Token: {auth_token[:20] if auth_token else 'N/A'}...",
         name="Created User via MCP",
         attachment_type=allure.attachment_type.TEXT
     )

@@ -799,7 +799,7 @@ def generate_step_stubs(feature_file: str, output_dir: str = "tests/step_definit
         ```
     """
     try:
-        from pytest_bdd.parser import Feature
+        from pytest_bdd.parser import FeatureParser
     except ImportError as e:
         raise ImportError(
             "Step stub generation requires pytest-bdd. "
@@ -807,12 +807,17 @@ def generate_step_stubs(feature_file: str, output_dir: str = "tests/step_definit
         ) from e
     
     # Verify feature file exists
-    if not Path(feature_file).exists():
+    feature_path = Path(feature_file)
+    if not feature_path.exists():
         raise FileNotFoundError(f"Feature file not found: {feature_file}")
     
     # Parse feature file with pytest-bdd
+    # pytest-bdd 8.1.0 uses FeatureParser with basedir and basename
     try:
-        feature = Feature.parse(feature_file)
+        basedir = str(feature_path.parent.absolute()) if feature_path.parent else "."
+        basename = feature_path.name
+        parser = FeatureParser(basedir, basename)
+        feature = parser.parse()
     except Exception as e:
         raise ValueError(f"Failed to parse feature file: {e}") from e
     
@@ -827,7 +832,8 @@ def generate_step_stubs(feature_file: str, output_dir: str = "tests/step_definit
     # Collect unique steps across all scenarios
     unique_steps: Dict[str, Dict[str, str]] = {}  # step_text -> {keyword, function_name}
     
-    for scenario in feature.scenarios:
+    # feature.scenarios is an OrderedDict, so iterate over values to get ScenarioTemplate objects
+    for scenario in feature.scenarios.values():
         for step in scenario.steps:
             step_text = step.name
             if step_text not in unique_steps:

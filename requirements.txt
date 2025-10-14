@@ -67,11 +67,11 @@ pytest-json-report==1.5.0
 # python-dotenv 1.0.1 - Environment variable management from .env files
 python-dotenv==1.0.1
 
-# faker 34.2.0 - Realistic test data generation
-faker==34.2.0
+# faker 37.11.0 - Realistic test data generation (updated to latest stable)
+faker==37.11.0
 
-# tenacity 9.1.1 - Retry logic for flaky operations
-tenacity==9.1.1
+# tenacity 9.1.2 - Retry logic for flaky operations (updated to latest stable)
+tenacity==9.1.2
 
 # loguru 0.7.3 - Enhanced logging with better formatting and context
 loguru==0.7.3

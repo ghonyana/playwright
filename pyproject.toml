@@ -66,7 +66,7 @@ dev = [
     "pre-commit==4.0.1",          # Git pre-commit hook framework
     "pytest-cov==6.0.0",          # Code coverage reporting
     "pytest-xdist==3.6.1",        # Parallel test execution
-    "faker==34.2.0",              # Test data generation
+    "faker==37.11.0",              # Test data generation (updated to latest stable)
 ]
 
 # MCP server dependencies (optional for deterministic testing)
@@ -78,8 +78,8 @@ mcp = [
     "passlib==1.7.4",             # Password hashing
     "python-multipart==0.0.20",   # Form data parsing
     "sqlalchemy==2.0.38",         # Database ORM (optional)
-    "alembic==1.14.3",            # Database migrations (optional)
-    "websockets==14.1",           # WebSocket support
+    "alembic==1.17.0",            # Database migrations (optional, updated to latest stable)
+    "websockets==15.0.1",           # WebSocket support (updated to latest stable)
 ]
 
 # LLM integration dependencies (optional for test generation)

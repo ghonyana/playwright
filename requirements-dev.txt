@@ -12,7 +12,7 @@ isort==5.13.2            # Import sorting
 # Enhanced Testing Utilities
 pytest-xdist==3.6.1      # Parallel test execution
 pytest-httpx==0.35.0     # httpx mocking fixture for tests
-faker==34.2.0            # Realistic test data generation
+faker==37.11.0            # Realistic test data generation (updated to latest stable)
 
 # Additional Reporting Tools (Section 0.3.6)
 pytest-html==4.1.1       # Fallback HTML reporting

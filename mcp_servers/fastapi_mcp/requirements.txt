@@ -20,4 +20,4 @@ python-multipart==0.0.20   # Multipart form data parsing support
 
 # Optional Database Support (for state management)
 sqlalchemy==2.0.38         # Modern async ORM for test data persistence
-alembic==1.14.3            # Database schema migrations for test environment setup
+alembic==1.17.0            # Database schema migrations for test environment setup (updated to latest stable)

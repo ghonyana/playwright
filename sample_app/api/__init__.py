@@ -16,4 +16,6 @@ This is part of the optional demonstration application that serves as a
 target for the test automation examples in this framework.
 """
 
+from . import routes
+
 __all__ = ["routes"]

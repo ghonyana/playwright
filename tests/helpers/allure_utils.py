@@ -239,10 +239,10 @@ def attach_trace_file(trace_path: str) -> None:
             attach_trace_file(trace_path)
     """
     try:
+        # Note: Allure doesn't have a ZIP attachment type, so we use None for binary files
         allure.attach.file(
             trace_path,
-            name="Playwright Trace",
-            attachment_type=allure.attachment_type.ZIP
+            name="Playwright Trace"
         )
     except FileNotFoundError:
         allure.attach(

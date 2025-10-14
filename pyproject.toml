@@ -1,16 +1,21 @@
+# Modern Python project configuration following PEP 517/518 standards
+# Enterprise-ready test automation framework with pytest, Playwright, BDD, and MCP integration
+
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.build_meta"
+# Use hatchling as the build backend for modern Python packaging
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
-name = "playwright-test-automation"
-version = "1.0.0"
-description = "Enterprise-ready Python test automation framework with Playwright, pytest-bdd, and MCP integration"
+# Project metadata
+name = "playwright-test-automation-framework"
+version = "0.1.0"
+description = "Enterprise-ready Python test automation framework combining pytest, Playwright, BDD, and MCP integration"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.9"  # Playwright 1.55.0 requires Python 3.9+
 license = {text = "MIT"}
 authors = [
-    {name = "Blitzy", email = "team@blitzy.com"}
+    {name = "Blitzy Team", email = "team@blitzy.com"}
 ]
 keywords = [
     "testing",
@@ -19,8 +24,12 @@ keywords = [
     "pytest",
     "bdd",
     "gherkin",
+    "pytest-bdd",
     "mcp",
-    "llm"
+    "llm",
+    "test-framework",
+    "api-testing",
+    "ui-testing"
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -33,90 +42,109 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Testing",
     "Topic :: Software Development :: Quality Assurance",
+    "Framework :: Pytest",
 ]
 
+# Core production dependencies with pinned versions for reproducibility
 dependencies = [
-    "pytest==8.4.2",
-    "pytest-bdd==8.1.0",
-    "playwright==1.55.0",
-    "pytest-playwright==0.6.2",
-    "httpx==0.28.1",
-    "pydantic==2.10.5",
-    "allure-pytest==2.15.0",
-    "python-dotenv==1.0.1",
-    "pytest-xdist==3.6.1",
-    "pytest-timeout==2.3.1",
-    "pytest-asyncio==0.25.2",
-    "tenacity==9.1.2",
-    "loguru==0.7.3",
+    "pytest==8.4.2",              # Core test framework
+    "pytest-bdd==8.1.0",          # BDD/Gherkin support
+    "playwright==1.55.0",         # Browser automation (requires Python 3.9+)
+    "pytest-playwright==0.6.2",   # Playwright pytest integration
+    "httpx==0.28.1",              # Modern HTTP client for API testing
+    "pydantic==2.10.5",           # Data validation and typing
+    "allure-pytest==2.15.0",      # Allure reporting integration
+    "python-dotenv==1.0.1",       # Environment variable management
+    "pytest-asyncio==0.25.2",     # Async test support
 ]
 
 [project.optional-dependencies]
+# Development dependencies
 dev = [
-    "ruff==0.9.3",
-    "mypy==1.14.1",
-    "pre-commit==4.0.1",
-    "pytest-cov==6.0.0",
-    "pytest-httpx==0.35.0",
-    "faker==30.8.2",
-    "pytest-html==4.1.1",
-    "pytest-json-report==1.5.0",
+    "ruff==0.9.3",                # Fast Python linter and formatter
+    "mypy==1.14.1",               # Static type checker
+    "pre-commit==4.0.1",          # Git pre-commit hook framework
+    "pytest-cov==6.0.0",          # Code coverage reporting
+    "pytest-xdist==3.6.1",        # Parallel test execution
+    "faker==34.2.0",              # Test data generation
 ]
 
+# MCP server dependencies (optional for deterministic testing)
 mcp = [
-    "fastapi==0.118.0",
-    "uvicorn[standard]==0.34.0",
-    "pydantic-settings==2.7.0",
-    "python-jose==3.3.0",
-    "passlib==1.7.4",
-    "python-multipart==0.0.20",
-    "sqlalchemy==2.0.38",
-    "alembic==1.14.3",
-    "websockets==14.1",
+    "fastapi==0.118.0",           # FastAPI MCP server framework
+    "uvicorn[standard]==0.34.0",  # ASGI server with extras
+    "pydantic-settings==2.7.0",   # Settings management
+    "python-jose==3.3.0",         # JWT token handling
+    "passlib==1.7.4",             # Password hashing
+    "python-multipart==0.0.20",   # Form data parsing
+    "sqlalchemy==2.0.38",         # Database ORM (optional)
+    "alembic==1.14.3",            # Database migrations (optional)
+    "websockets==14.1",           # WebSocket support
 ]
 
+# LLM integration dependencies (optional for test generation)
 llm = [
-    "openai==1.59.8",
-    "ollama==0.4.8",
-    "tiktoken==0.9.0",
+    "openai==1.59.8",             # OpenAI API client
+    "ollama==0.4.8",              # Ollama local LLM client
+    "tiktoken==0.9.0",            # Token counting
 ]
 
 [project.urls]
-Homepage = "https://github.com/blitzy/playwright-test-automation"
-Repository = "https://github.com/blitzy/playwright-test-automation"
-Documentation = "https://github.com/blitzy/playwright-test-automation/docs"
+Homepage = "https://github.com/blitzy/playwright-test-automation-framework"
+Repository = "https://github.com/blitzy/playwright-test-automation-framework"
+Documentation = "https://github.com/blitzy/playwright-test-automation-framework/docs"
+Issues = "https://github.com/blitzy/playwright-test-automation-framework/issues"
 
+# ============================================================================
+# PYTEST CONFIGURATION
+# ============================================================================
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+
+# Default test execution options
 addopts = [
-    "-v",
-    "--strict-markers",
-    "--tb=short",
-    "--disable-warnings",
+    "-v",                         # Verbose output
+    "--strict-markers",           # Fail on unknown markers
+    "--tb=short",                 # Short traceback format
 ]
+
+# Custom test markers for categorization and selective execution
 markers = [
+    "bdd: BDD/Gherkin scenario tests",
     "ui: UI tests using Playwright",
     "api: API tests using httpx",
     "integration: Integration tests",
     "smoke: Smoke tests for critical paths",
     "slow: Tests that take longer to execute",
 ]
-# BDD feature file configuration
+
+# BDD feature file configuration for pytest-bdd
 bdd_features_base_dir = "tests/features"
 
+# ============================================================================
+# COVERAGE CONFIGURATION
+# ============================================================================
 [tool.coverage.run]
-source = ["tests"]
+# Source directories to measure coverage
+source = ["tests", "mcp_servers", "llm"]
+
+# Patterns to exclude from coverage
 omit = [
     "*/tests/*",
     "*/venv/*",
+    "*/.venv/*",
     "*/__pycache__/*",
+    "*/site-packages/*",
 ]
 
+branch = true  # Measure branch coverage
+
 [tool.coverage.report]
+# Lines to exclude from coverage reporting
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -124,33 +152,47 @@ exclude_lines = [
     "raise NotImplementedError",
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
+    "@abstractmethod",
 ]
 
-[tool.mypy]
-python_version = "3.12"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-strict_equality = true
-strict_concatenate = true
+precision = 2
+show_missing = true
 
+# ============================================================================
+# MYPY TYPE CHECKING CONFIGURATION
+# ============================================================================
+[tool.mypy]
+python_version = "3.9"            # Target Python 3.9 for compatibility
+strict = true                     # Enable all strict type checking options
+warn_return_any = true            # Warn about returning Any
+warn_unused_configs = true        # Warn about unused config options
+disallow_untyped_defs = true      # Disallow functions without type annotations
+disallow_incomplete_defs = true   # Disallow partially typed functions
+check_untyped_defs = true         # Type check untyped function bodies
+no_implicit_optional = true       # Don't assume Optional for None default
+warn_redundant_casts = true       # Warn about unnecessary casts
+warn_unused_ignores = true        # Warn about unused type: ignore comments
+warn_no_return = true             # Warn about functions that don't return
+strict_equality = true            # Strict equality checks
+
+# Third-party libraries without type stubs
 [[tool.mypy.overrides]]
 module = [
     "pytest_bdd.*",
     "playwright.*",
     "allure.*",
+    "faker.*",
 ]
 ignore_missing_imports = true
 
+# ============================================================================
+# RUFF LINTING AND FORMATTING CONFIGURATION
+# ============================================================================
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py39"           # Target Python 3.9 syntax
+
+# Directories to exclude from linting
 extend-exclude = [
     ".git",
     ".venv",
@@ -158,29 +200,33 @@ extend-exclude = [
     "__pycache__",
     "build",
     "dist",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
 ]
 
 [tool.ruff.lint]
+# Rule categories to enable
 select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
-]
-ignore = [
-    "E501",  # line too long (handled by formatter)
-    "B008",  # do not perform function calls in argument defaults
-    "C901",  # too complex
+    "E",    # pycodestyle errors
+    "F",    # Pyflakes
+    "I",    # isort (import sorting)
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
 ]
 
+# Rules to ignore
+ignore = [
+    "E501",  # Line too long (handled by formatter)
+]
+
+# Per-file rule ignores
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  # unused imports
-"tests/**/*.py" = ["S101"]  # use of assert
+"__init__.py" = ["F401"]           # Unused imports in __init__.py
+"tests/**/*.py" = ["S101"]         # Allow assert statements in tests
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 line-ending = "auto"
+skip-magic-trailing-comma = false

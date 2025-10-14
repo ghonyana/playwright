@@ -38,14 +38,14 @@ class TestUser(Base):
         role: User role (e.g., 'admin', 'customer', 'guest') for permission testing
         password_hash: Hashed password for secure credential storage
         created_at: UTC timestamp when user was seeded
-        metadata: Flexible JSON field for custom user attributes (e.g., org_id, permissions)
+        user_metadata: Flexible JSON field for custom user attributes (e.g., org_id, permissions)
     
     Example:
         user = TestUser(
             email="test@example.com",
             role="customer",
             password_hash="hashed_value",
-            metadata={"org_id": "123", "tier": "premium"}
+            user_metadata={"org_id": "123", "tier": "premium"}
         )
     """
     __tablename__ = "test_users"
@@ -55,7 +55,7 @@ class TestUser(Base):
     role = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    metadata = Column(JSON, nullable=True)
+    user_metadata = Column(JSON, nullable=True)
     
     def __repr__(self) -> str:
         """String representation for debugging and logging."""

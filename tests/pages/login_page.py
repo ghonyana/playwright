@@ -72,7 +72,7 @@ def test_login_with_seeded_user(page, login_page: LoginPage, mcp_client):
 from typing import Optional
 
 import allure
-from playwright.sync_api import Page, expect
+from playwright.sync_api import Page, expect, Locator
 
 from tests.pages.base_page import BasePage
 
@@ -152,7 +152,7 @@ class LoginPage(BasePage):
     # Locator Properties using stable selector strategies
     
     @property
-    def email_input(self):
+    def email_input(self) -> Locator:
         """
         Locate the email input field using accessible label.
         
@@ -182,7 +182,7 @@ class LoginPage(BasePage):
             return self.page.get_by_role("textbox", name="Email")
     
     @property
-    def password_input(self):
+    def password_input(self) -> Locator:
         """
         Locate the password input field using accessible label.
         
@@ -211,7 +211,7 @@ class LoginPage(BasePage):
             return self.page.get_by_role("textbox", name="Password")
     
     @property
-    def login_button(self):
+    def login_button(self) -> Locator:
         """
         Locate the login submission button using ARIA role and accessible name.
         
@@ -238,7 +238,7 @@ class LoginPage(BasePage):
         return self.page.get_by_role("button", name="Sign In")
     
     @property
-    def error_message(self):
+    def error_message(self) -> Locator:
         """
         Locate the error alert message display using ARIA role.
         
@@ -264,7 +264,7 @@ class LoginPage(BasePage):
         return self.page.get_by_role("alert")
     
     @property
-    def remember_me_checkbox(self):
+    def remember_me_checkbox(self) -> Locator:
         """
         Locate the remember me checkbox using ARIA role and accessible name.
         
@@ -291,7 +291,7 @@ class LoginPage(BasePage):
         return self.page.get_by_role("checkbox", name="Remember me")
     
     @property
-    def forgot_password_link(self):
+    def forgot_password_link(self) -> Locator:
         """
         Locate the forgot password link using ARIA role and accessible name.
         

@@ -202,6 +202,56 @@ async def async_api_client(api_base_url: str):
 
 
 # ==============================================================================
+# API Client Fixtures
+# ==============================================================================
+
+
+@pytest.fixture(scope="session")
+def admin_token() -> str:
+    """
+    Get admin authentication token for API tests.
+    
+    Returns:
+        str: Admin bearer token from environment or test default
+    """
+    return os.getenv("ADMIN_TOKEN", "test-admin-token-placeholder")
+
+
+@pytest.fixture(scope="function")
+def users_api(api_base_url: str, admin_token: str):
+    """
+    User management API client fixture with admin authentication.
+    
+    Args:
+        api_base_url: Base URL for the API from environment
+        admin_token: Admin bearer token for authentication
+    
+    Returns:
+        UsersAPIClient: Configured users API client instance
+    """
+    from tests.api_clients.users_client import UsersAPIClient
+    return UsersAPIClient(base_url=api_base_url, auth_token=admin_token)
+
+
+@pytest.fixture(scope="function")
+def mcp_client() -> "MCPClient":
+    """
+    MCP (Model Context Protocol) client fixture for deterministic test data generation.
+    
+    Per user directive: "Use MCP tools for data/state (don't hard-code test data)"
+    
+    Returns:
+        MCPClient: Configured MCP client for test data operations
+    """
+    from tests.helpers.mcp_client import MCPClient
+    
+    mcp_base_url = os.getenv("FASTAPI_MCP_URL", "http://localhost:8000")
+    mcp_token = os.getenv("FASTAPI_MCP_TOKEN", "test-mcp-token")
+    
+    return MCPClient(base_url=mcp_base_url, token=mcp_token)
+
+
+# ==============================================================================
 # Pytest Hooks for Enhanced Reporting
 # ==============================================================================
 

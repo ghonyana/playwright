@@ -145,11 +145,17 @@ class BaseAPIClient:
         Args:
             response: httpx Response object from event hook
         """
+        # Safely get elapsed time (may not be available in all contexts)
+        try:
+            elapsed_ms = response.elapsed.total_seconds() * 1000
+        except (AttributeError, RuntimeError):
+            elapsed_ms = None
+        
         response_details = {
             "status_code": response.status_code,
             "headers": dict(response.headers),
             "body": response.text[:1000] if response.text else None,  # Truncate large responses
-            "elapsed_ms": response.elapsed.total_seconds() * 1000
+            "elapsed_ms": elapsed_ms
         }
         allure.attach(
             json.dumps(response_details, indent=2),
@@ -608,7 +614,7 @@ class AsyncBaseAPIClient:
             finally:
                 await client.close()
         """
-        await self.client.close()
+        await self.client.aclose()
     
     async def __aenter__(self):
         """

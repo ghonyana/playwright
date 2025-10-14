@@ -77,6 +77,15 @@ tenacity==9.1.1
 loguru==0.7.3
 
 # ==============================================================================
+# Sample Application Dependencies
+# ==============================================================================
+# Flask 3.1.0 - Lightweight web framework for sample/demo application
+flask==3.1.0
+
+# flask-cors 5.0.0 - CORS support for API endpoints in sample application
+flask-cors==5.0.0
+
+# ==============================================================================
 # Installation Instructions
 # ==============================================================================
 # To install all production dependencies:

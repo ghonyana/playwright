@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login page demonstrating stable test automation locators">
+    <title>Login - Test Automation Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <main role="main" class="login-container">
+        <section class="login-section">
+            <header>
+                <h1 data-testid="page-title">Welcome Back</h1>
+                <p class="subtitle" data-testid="page-subtitle">Sign in to your account</p>
+            </header>
+
+            <!-- Flash Messages Section -->
+            {% if messages %}
+                <div class="messages-container" role="alert" aria-live="polite">
+                    {% for category, message in messages %}
+                        <div class="message message-{{ category }}" 
+                             data-testid="flash-message-{{ category }}"
+                             role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Error Message Display -->
+            {% if error %}
+                <div class="error-message" 
+                     role="alert" 
+                     aria-live="assertive"
+                     data-testid="error-message">
+                    <span class="error-icon" aria-hidden="true">⚠</span>
+                    <span class="error-text">{{ error }}</span>
+                </div>
+            {% endif %}
+
+            <!-- Success Message Display -->
+            {% if success %}
+                <div class="success-message" 
+                     role="status" 
+                     aria-live="polite"
+                     data-testid="success-message">
+                    <span class="success-icon" aria-hidden="true">✓</span>
+                    <span class="success-text">{{ success }}</span>
+                </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="POST" 
+                  action="/login" 
+                  role="form"
+                  aria-label="Login form"
+                  data-testid="login-form"
+                  class="login-form">
+                
+                <!-- CSRF Token (if using Flask-WTF or similar) -->
+                {% if csrf_token %}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% endif %}
+
+                <!-- Email Input Field -->
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        Email Address
+                        <span class="required-indicator" aria-label="required">*</span>
+                    </label>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           class="form-input"
+                           role="textbox"
+                           aria-label="Email Address"
+                           aria-required="true"
+                           aria-describedby="email-hint"
+                           data-testid="email-input"
+                           placeholder="you@example.com"
+                           required
+                           autocomplete="email"
+                           value="{{ email or '' }}">
+                    <span id="email-hint" class="input-hint">
+                        Enter your registered email address
+                    </span>
+                </div>
+
+                <!-- Password Input Field -->
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        Password
+                        <span class="required-indicator" aria-label="required">*</span>
+                    </label>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           class="form-input"
+                           role="textbox"
+                           aria-label="Password"
+                           aria-required="true"
+                           aria-describedby="password-hint"
+                           data-testid="password-input"
+                           placeholder="Enter your password"
+                           required
+                           autocomplete="current-password"
+                           minlength="8">
+                    <span id="password-hint" class="input-hint">
+                        Password must be at least 8 characters
+                    </span>
+                </div>
+
+                <!-- Remember Me Checkbox -->
+                <div class="form-group form-group-checkbox">
+                    <input type="checkbox" 
+                           id="remember-me" 
+                           name="remember_me" 
+                           class="form-checkbox"
+                           role="checkbox"
+                           aria-label="Remember me on this device"
+                           data-testid="remember-me-checkbox"
+                           value="true">
+                    <label for="remember-me" class="checkbox-label">
+                        Remember me on this device
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-actions">
+                    <button type="submit" 
+                            role="button"
+                            aria-label="Sign in to your account"
+                            data-testid="login-button"
+                            class="btn btn-primary btn-login">
+                        Sign In
+                    </button>
+                </div>
+
+                <!-- Additional Links -->
+                <div class="form-footer">
+                    <a href="/forgot-password" 
+                       class="link-secondary"
+                       data-testid="forgot-password-link"
+                       aria-label="Reset your password">
+                        Forgot your password?
+                    </a>
+                    <span class="separator" aria-hidden="true">|</span>
+                    <a href="/register" 
+                       class="link-secondary"
+                       data-testid="register-link"
+                       aria-label="Create a new account">
+                        Create an account
+                    </a>
+                </div>
+            </form>
+
+            <!-- Loading Indicator (hidden by default) -->
+            <div class="loading-indicator" 
+                 role="status" 
+                 aria-live="polite"
+                 aria-busy="false"
+                 data-testid="loading-indicator"
+                 style="display: none;">
+                <span class="spinner" aria-hidden="true"></span>
+                <span class="loading-text">Signing in...</span>
+            </div>
+        </section>
+    </main>
+
+    <!-- Accessible Skip Link for Keyboard Navigation -->
+    <a href="#main-content" class="skip-link" data-testid="skip-link">
+        Skip to main content
+    </a>
+
+    <script>
+        // Progressive enhancement: Form validation and loading state
+        (function() {
+            const form = document.querySelector('[data-testid="login-form"]');
+            const submitButton = document.querySelector('[data-testid="login-button"]');
+            const loadingIndicator = document.querySelector('[data-testid="loading-indicator"]');
+
+            if (form && submitButton && loadingIndicator) {
+                form.addEventListener('submit', function(event) {
+                    // Show loading indicator on form submission
+                    submitButton.disabled = true;
+                    submitButton.setAttribute('aria-busy', 'true');
+                    loadingIndicator.style.display = 'block';
+                    loadingIndicator.setAttribute('aria-busy', 'true');
+                });
+
+                // Client-side validation feedback
+                const emailInput = document.querySelector('[data-testid="email-input"]');
+                const passwordInput = document.querySelector('[data-testid="password-input"]');
+
+                if (emailInput) {
+                    emailInput.addEventListener('invalid', function(event) {
+                        event.preventDefault();
+                        this.setAttribute('aria-invalid', 'true');
+                    });
+
+                    emailInput.addEventListener('input', function() {
+                        if (this.validity.valid) {
+                            this.setAttribute('aria-invalid', 'false');
+                        }
+                    });
+                }
+
+                if (passwordInput) {
+                    passwordInput.addEventListener('invalid', function(event) {
+                        event.preventDefault();
+                        this.setAttribute('aria-invalid', 'true');
+                    });
+
+                    passwordInput.addEventListener('input', function() {
+                        if (this.validity.valid) {
+                            this.setAttribute('aria-invalid', 'false');
+                        }
+                    });
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

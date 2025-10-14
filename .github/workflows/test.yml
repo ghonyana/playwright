@@ -1,0 +1,206 @@
+# GitHub Actions Workflow: Test Execution
+# Purpose: Comprehensive test execution with matrix strategy across Python versions and browsers
+# Integrates FastAPI MCP server for deterministic test data management
+
+name: Test Execution
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to test (leave empty for all)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - chromium
+          - firefox
+          - webkit
+
+env:
+  PYTHON_VERSION: '3.11'
+  PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
+
+jobs:
+  test:
+    name: Test (${{ matrix.browser }}, Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ github.event.inputs.browser && fromJSON(format('["{0}"]', github.event.inputs.browser)) || fromJSON('["chromium", "firefox", "webkit"]') }}
+        python-version: ['3.11', '3.12']
+    
+    services:
+      fastapi-mcp:
+        image: python:3.11-slim
+        ports:
+          - 8000:8000
+        env:
+          AUTH_SECRET_KEY: ${{ secrets.MCP_AUTH_SECRET_KEY || 'test-secret-key-change-in-production' }}
+          APP_BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:3000' }}
+          APP_API_URL: ${{ secrets.API_BASE_URL || 'http://localhost:3000/api' }}
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL || 'sqlite:///./test_mcp.db' }}
+        options: >-
+          --health-cmd "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          key: playwright-browsers-${{ matrix.browser }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            playwright-browsers-${{ matrix.browser }}-
+            playwright-browsers-
+      
+      - name: Install Playwright browser - ${{ matrix.browser }}
+        run: |
+          python -m playwright install ${{ matrix.browser }} --with-deps
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+      
+      - name: Start FastAPI MCP Server
+        run: |
+          cd mcp_servers/fastapi_mcp
+          pip install -r requirements.txt
+          nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
+          echo $! > mcp_server.pid
+        env:
+          AUTH_SECRET_KEY: ${{ secrets.MCP_AUTH_SECRET_KEY || 'test-secret-key-change-in-production' }}
+          APP_BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:3000' }}
+          APP_API_URL: ${{ secrets.API_BASE_URL || 'http://localhost:3000/api' }}
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL || 'sqlite:///./test_mcp.db' }}
+      
+      - name: Wait for FastAPI MCP Server health check
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
+        shell: bash
+      
+      - name: Run pytest with Playwright
+        run: |
+          pytest tests/ \
+            --browser=${{ matrix.browser }} \
+            --headed=false \
+            --tracing=retain-on-failure \
+            --screenshot=only-on-failure \
+            --video=retain-on-failure \
+            --alluredir=allure-results \
+            --maxfail=5 \
+            -n auto \
+            -v
+        env:
+          BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:3000' }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL || 'http://localhost:3000/api' }}
+          FASTAPI_MCP_URL: http://localhost:8000
+          FASTAPI_MCP_TOKEN: ${{ secrets.FASTAPI_MCP_TOKEN || 'test-token-change-in-production' }}
+          HEADLESS: 'true'
+          PLAYWRIGHT_MCP_ENABLED: 'false'
+          BROWSER: ${{ matrix.browser }}
+          PLAYWRIGHT_BROWSERS_PATH: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+      
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.browser }}-py${{ matrix.python-version }}
+          path: allure-results/
+          retention-days: 30
+          if-no-files-found: warn
+      
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traces-${{ matrix.browser }}-py${{ matrix.python-version }}
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+      
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.browser }}-py${{ matrix.python-version }}
+          path: screenshots/
+          retention-days: 14
+          if-no-files-found: ignore
+      
+      - name: Stop FastAPI MCP Server
+        if: always()
+        run: |
+          if [ -f mcp_servers/fastapi_mcp/mcp_server.pid ]; then
+            kill $(cat mcp_servers/fastapi_mcp/mcp_server.pid) || true
+            rm mcp_servers/fastapi_mcp/mcp_server.pid
+          fi
+        shell: bash
+      
+      - name: Publish test results summary
+        if: always()
+        run: |
+          echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Browser:** ${{ matrix.browser }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Python Version:** ${{ matrix.python-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f allure-results/summary.txt ]; then
+            cat allure-results/summary.txt >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Test results summary not available" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  aggregate-results:
+    name: Aggregate Test Results
+    runs-on: ubuntu-latest
+    needs: test
+    if: always()
+    
+    steps:
+      - name: Download all Allure results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-results-*
+          path: allure-results-combined
+          merge-multiple: true
+      
+      - name: Create combined results summary
+        run: |
+          echo "## Combined Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All test executions completed across:" >> $GITHUB_STEP_SUMMARY
+          echo "- Browsers: chromium, firefox, webkit" >> $GITHUB_STEP_SUMMARY
+          echo "- Python versions: 3.11, 3.12" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download artifacts for detailed results and diagnostics." >> $GITHUB_STEP_SUMMARY
+

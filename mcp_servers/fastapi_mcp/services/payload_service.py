@@ -479,7 +479,7 @@ class PayloadService:
                 future_date = self.fake.future_datetime()
                 defaults[placeholder] = future_date.isoformat() + "Z"
             elif "estimated_hours" in placeholder.lower():
-                defaults[placeholder] = self.fake.random_int(min=1, max=40)
+                defaults[placeholder] = str(self.fake.random_int(min=1, max=40))
             elif "token" in placeholder.lower():
                 defaults[placeholder] = str(uuid.uuid4())
             elif "client_id" in placeholder.lower():

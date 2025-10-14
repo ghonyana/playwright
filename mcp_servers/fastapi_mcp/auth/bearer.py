@@ -87,11 +87,11 @@ Production Deployment Considerations:
 """
 
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+from jose import JWTError, jwt  # type: ignore[import-untyped]
 
 from mcp_servers.fastapi_mcp.config import settings
 
@@ -99,17 +99,17 @@ from mcp_servers.fastapi_mcp.config import settings
 # HTTPBearer security scheme for extracting tokens from Authorization headers
 # This automatically handles:
 # - Parsing "Authorization: Bearer <token>" header format
-# - Returning 401 if Authorization header is missing
 # - Extracting the token string for validation functions
+# Note: auto_error=False allows custom 401 responses instead of FastAPI's default 403
 security = HTTPBearer(
     scheme_name="Bearer Token",
     description="Bearer token for MCP server authentication. Include in Authorization header as: Bearer <token>",
-    auto_error=True  # Automatically return 401 if header is missing
+    auto_error=False  # Manual error handling for proper 401 Unauthorized responses
 )
 
 
 async def validate_bearer_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> str:
     """
     Validate static bearer token against FASTAPI_MCP_TOKEN environment variable.
@@ -121,7 +121,7 @@ async def validate_bearer_token(
     
     Authentication Flow:
         1. FastAPI extracts token from "Authorization: Bearer <token>" header
-        2. HTTPBearer dependency provides credentials object
+        2. HTTPBearer dependency provides credentials object (None if missing)
         3. credentials.credentials contains the token string
         4. Compare token against os.getenv("FASTAPI_MCP_TOKEN")
         5. Return token if match, raise HTTPException if mismatch or missing config
@@ -129,7 +129,7 @@ async def validate_bearer_token(
     Args:
         credentials: HTTPAuthorizationCredentials from FastAPI's HTTPBearer
             dependency injection. Contains the extracted bearer token in
-            credentials.credentials attribute.
+            credentials.credentials attribute. None if Authorization header missing.
     
     Returns:
         str: The validated bearer token string. This can be used by endpoints
@@ -137,6 +137,7 @@ async def validate_bearer_token(
     
     Raises:
         HTTPException: 
+            - 401 Unauthorized if Authorization header is missing
             - 401 Unauthorized if token doesn't match FASTAPI_MCP_TOKEN
             - 401 Unauthorized if provided token is empty/whitespace
             - 500 Internal Server Error if FASTAPI_MCP_TOKEN env var not configured
@@ -163,6 +164,14 @@ async def validate_bearer_token(
         Or in .env file:
         FASTAPI_MCP_TOKEN=abc123def456...
     """
+    # Check if Authorization header was provided
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization header is required. Provide Bearer token in Authorization header.",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    
     # Retrieve expected token from environment variable
     expected_token = os.getenv("FASTAPI_MCP_TOKEN")
     
@@ -202,7 +211,7 @@ async def validate_bearer_token(
 
 
 async def verify_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> Dict[str, Any]:
     """
     Verify JWT bearer token using python-jose with signature and claim validation.
@@ -214,7 +223,7 @@ async def verify_token(
     
     JWT Verification Process:
         1. FastAPI extracts token from "Authorization: Bearer <token>" header
-        2. HTTPBearer dependency provides credentials object
+        2. HTTPBearer dependency provides credentials object (None if missing)
         3. jwt.decode() validates signature using settings.auth_secret_key
         4. Algorithm verified against settings.auth_algorithm (default: HS256)
         5. Expiration checked automatically by jwt.decode()
@@ -223,6 +232,7 @@ async def verify_token(
     Args:
         credentials: HTTPAuthorizationCredentials from FastAPI's HTTPBearer
             dependency injection. Contains the JWT token string to decode.
+            None if Authorization header missing.
     
     Returns:
         Dict[str, Any]: Decoded JWT payload containing claims such as:
@@ -233,6 +243,7 @@ async def verify_token(
     
     Raises:
         HTTPException:
+            - 401 Unauthorized if Authorization header is missing
             - 401 Unauthorized if JWT signature is invalid
             - 401 Unauthorized if JWT is expired
             - 401 Unauthorized if JWT is malformed or uses wrong algorithm
@@ -286,6 +297,14 @@ async def verify_token(
             - auth_algorithm: Algorithm (HS256, HS384, HS512, RS256, etc.)
             - auth_token_expire_minutes: Token validity duration
     """
+    # Check if Authorization header was provided
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization header is required. Provide Bearer token in Authorization header.",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    
     # Validate that JWT secret key is configured
     if not settings.auth_secret_key:
         raise HTTPException(
@@ -308,7 +327,7 @@ async def verify_token(
         # - Checks token expiration (exp claim)
         # - Validates algorithm matches settings.auth_algorithm
         # - Raises JWTError for any validation failures
-        payload = jwt.decode(
+        payload: Dict[str, Any] = jwt.decode(
             token=token,
             key=settings.auth_secret_key,
             algorithms=[settings.auth_algorithm]

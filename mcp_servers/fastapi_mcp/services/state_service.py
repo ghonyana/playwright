@@ -41,7 +41,7 @@ from sqlalchemy import select, delete, and_, or_, text
 
 # Optional Redis import - gracefully handle if not installed
 try:
-    import redis
+    import redis  # type: ignore[import-untyped]
     from redis import Redis
     REDIS_AVAILABLE = True
 except ImportError:
@@ -131,6 +131,7 @@ class StateService:
         
         # Initialize database manager if database is configured
         if settings.is_database_configured():
+            assert settings.database_url is not None, "database_url must be set when is_database_configured() is True"
             self.db_manager: Optional[DatabaseManager] = DatabaseManager(settings.database_url)
             logger.info(f"StateService initialized with database: {settings.database_url}")
         else:
@@ -476,7 +477,7 @@ class StateService:
                     for user in users_to_delete:
                         if user.user_metadata:
                             try:
-                                metadata = user.user_metadata if isinstance(user.user_metadata, dict) else json.loads(user.user_metadata)
+                                metadata = user.user_metadata if isinstance(user.user_metadata, dict) else json.loads(str(user.user_metadata))
                                 if metadata.get("test") is True or metadata.get("environment") == "test":
                                     safe_users.append(user)
                                 else:
@@ -733,7 +734,7 @@ class StateService:
                     ]
                     
                     conditions = [TestSession.session_id.like(pattern) for pattern in test_session_patterns]
-                    conditions.append(TestSession.started_at < cutoff_time)
+                    conditions.append(TestSession.started_at < cutoff_time)  # type: ignore[arg-type]
                     
                     query = select(TestSession).where(or_(*conditions))
                     result = await session.execute(query)

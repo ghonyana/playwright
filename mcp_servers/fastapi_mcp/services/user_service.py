@@ -92,7 +92,7 @@ class UserService:
         ```
     """
     
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the UserService with Faker for test data generation.
         
@@ -258,7 +258,7 @@ class UserService:
             
             # Parse token from response
             auth_data = response.json()
-            token = auth_data.get("access_token") or auth_data.get("token")
+            token: Optional[str] = auth_data.get("access_token") or auth_data.get("token")
             
             if not token:
                 raise RuntimeError(

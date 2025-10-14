@@ -560,23 +560,54 @@ def logout():
 # ============================================================================
 # ERROR HANDLERS
 # ============================================================================
+# Note: Blueprint error handlers only catch errors within blueprint routes.
+# For app-wide error handling, these handlers should be registered on the
+# main Flask app object using @app.errorhandler decorators.
+# These are kept here as a pattern/example but may need app-level registration.
 
-@api_bp.errorhandler(404)
+@api_bp.app_errorhandler(404)
 def handle_not_found(error):
-    """Handle 404 errors for API endpoints."""
-    return _error_response('Resource not found', 404, 'not_found')
+    """
+    Handle 404 errors for API endpoints.
+    
+    Uses app_errorhandler to catch 404 errors throughout the application
+    when this blueprint is registered.
+    """
+    # Only handle if the request path starts with /api
+    if request.path.startswith('/api'):
+        return _error_response('Resource not found', 404, 'not_found')
+    # Let Flask handle non-API 404s normally
+    return error
 
 
-@api_bp.errorhandler(405)
+@api_bp.app_errorhandler(405)
 def handle_method_not_allowed(error):
-    """Handle 405 Method Not Allowed errors."""
-    return _error_response('Method not allowed', 405, 'method_not_allowed')
+    """
+    Handle 405 Method Not Allowed errors.
+    
+    Uses app_errorhandler to catch 405 errors throughout the application
+    when this blueprint is registered.
+    """
+    # Only handle if the request path starts with /api
+    if request.path.startswith('/api'):
+        return _error_response('Method not allowed', 405, 'method_not_allowed')
+    # Let Flask handle non-API 405s normally
+    return error
 
 
-@api_bp.errorhandler(500)
+@api_bp.app_errorhandler(500)
 def handle_internal_error(error):
-    """Handle 500 Internal Server errors."""
-    return _error_response('Internal server error', 500, 'internal_error')
+    """
+    Handle 500 Internal Server errors.
+    
+    Uses app_errorhandler to catch 500 errors throughout the application
+    when this blueprint is registered.
+    """
+    # Only handle if the request path starts with /api
+    if request.path.startswith('/api'):
+        return _error_response('Internal server error', 500, 'internal_error')
+    # Let Flask handle non-API 500s normally
+    return error
 
 
 # ============================================================================

@@ -54,7 +54,7 @@ Per Agent Action Plan Section 0.4:
 import os
 import sys
 from pathlib import Path
-from typing import Generator
+from typing import Any, AsyncGenerator, Generator
 
 import allure
 import httpx
@@ -132,14 +132,14 @@ def api_base_url() -> str:
 
 
 @pytest.fixture(scope="session")
-def browser_type_launch_args() -> dict:
+def browser_type_launch_args() -> dict[str, Any]:
     """
     Configure Playwright browser launch arguments.
     
     Per user directive: "HEADLESS=true" environment variable controls headless mode
     
     Returns:
-        dict: Browser launch configuration including:
+        dict[str, Any]: Browser launch configuration including:
             - headless: From HEADLESS env var (default: true)
             - slow_mo: Milliseconds to slow down operations (default: 0, useful for debugging)
     
@@ -157,7 +157,7 @@ def browser_type_launch_args() -> dict:
 
 
 @pytest.fixture(scope="session")
-def browser(playwright: Playwright, browser_type_launch_args: dict) -> Generator[Browser, None, None]:
+def browser(playwright: Playwright, browser_type_launch_args: dict[str, Any]) -> Generator[Browser, None, None]:
     """
     Create session-scoped Playwright browser instance.
     
@@ -331,7 +331,7 @@ def api_client(api_base_url: str) -> Generator[httpx.Client, None, None]:
 
 
 @pytest.fixture
-async def async_api_client(api_base_url: str) -> Generator[httpx.AsyncClient, None, None]:
+async def async_api_client(api_base_url: str) -> AsyncGenerator[httpx.AsyncClient, None]:
     """
     Create asynchronous httpx client for async API testing.
     
@@ -371,7 +371,7 @@ async def async_api_client(api_base_url: str) -> Generator[httpx.AsyncClient, No
 
 
 @pytest.fixture(scope="session")
-def mcp_client():
+def mcp_client() -> Generator[Any, None, None]:
     """
     MCP (Model Context Protocol) client fixture for deterministic test data management.
     
@@ -431,7 +431,7 @@ def mcp_client():
 
 
 @pytest.fixture
-def auth_api(api_base_url: str):
+def auth_api(api_base_url: str) -> Any:
     """
     Authentication API client fixture for login, logout, and token management.
     
@@ -472,7 +472,7 @@ def auth_api(api_base_url: str):
 
 
 @pytest.fixture
-def users_api(api_base_url: str):
+def users_api(api_base_url: str) -> Any:
     """
     User management API client fixture for CRUD operations.
     
@@ -525,7 +525,7 @@ def users_api(api_base_url: str):
 
 
 @pytest.fixture
-def login_page(page: Page):
+def login_page(page: Page) -> Any:
     """
     LoginPage fixture with injected Playwright page instance.
     
@@ -556,7 +556,7 @@ def login_page(page: Page):
 
 
 @pytest.fixture
-def dashboard_page(page: Page):
+def dashboard_page(page: Page) -> Any:
     """
     DashboardPage fixture with injected Playwright page instance.
     
@@ -593,7 +593,7 @@ def dashboard_page(page: Page):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def configure_allure_environment():
+def configure_allure_environment() -> None:
     """
     Configure Allure environment metadata for test reports.
     
@@ -648,7 +648,7 @@ Request Timeout: {os.getenv('REQUEST_TIMEOUT', '30000')}ms"""
 
 
 @pytest.fixture(autouse=True)
-def test_isolation(mcp_client):
+def test_isolation(mcp_client: Any) -> Generator[None, None, None]:
     """
     Optional test isolation hook that resets environment before each test.
     
@@ -714,7 +714,7 @@ def test_isolation(mcp_client):
 # ==============================================================================
 
 
-def pytest_configure(config):
+def pytest_configure(config: Any) -> None:
     """
     Configure pytest with custom markers and settings.
     
@@ -764,7 +764,7 @@ def pytest_configure(config):
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
-def pytest_runtest_makereport(item, call):
+def pytest_runtest_makereport(item: Any, call: Any) -> Generator[None, None, None]:
     """
     Pytest hook to capture test failures and attach diagnostic information.
     
@@ -789,7 +789,7 @@ def pytest_runtest_makereport(item, call):
     """
     # Execute test and get outcome
     outcome = yield
-    report = outcome.get_result()
+    report = outcome.get_result()  # type: ignore[attr-defined]
     
     # Only process test failures in the "call" phase (not setup/teardown)
     if report.when == "call" and report.failed:

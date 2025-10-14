@@ -74,7 +74,7 @@ Design Rationale:
 from typing import Optional, Dict, Any
 
 import allure
-from playwright.sync_api import Page
+from playwright.sync_api import Page, Locator
 
 from tests.pages.base_page import BasePage
 from tests.pages.components.navigation import NavigationComponent
@@ -178,7 +178,7 @@ class DashboardPage(BasePage):
     # brittle CSS selectors and XPath expressions.
     
     @property
-    def dashboard_heading(self):
+    def dashboard_heading(self) -> Locator:
         """
         Locate the main dashboard heading element using ARIA heading role.
         
@@ -206,7 +206,7 @@ class DashboardPage(BasePage):
         return self.page.get_by_role("heading", name="Dashboard")
     
     @property
-    def user_menu_button(self):
+    def user_menu_button(self) -> Locator:
         """
         Locate the user menu button using ARIA role with accessible name or test ID.
         
@@ -240,7 +240,7 @@ class DashboardPage(BasePage):
         return button_locator
     
     @property
-    def logout_link(self):
+    def logout_link(self) -> Locator:
         """
         Locate the logout menu item using ARIA menuitem role or link role.
         
@@ -274,7 +274,7 @@ class DashboardPage(BasePage):
         return menuitem_locator
     
     @property
-    def welcome_message(self):
+    def welcome_message(self) -> Locator:
         """
         Locate the welcome message heading on the dashboard.
         
@@ -312,7 +312,7 @@ class DashboardPage(BasePage):
         return welcome_heading
     
     @property
-    def main_content(self):
+    def main_content(self) -> Locator:
         """
         Locate the main content area of the dashboard using ARIA main role.
         
@@ -347,7 +347,7 @@ class DashboardPage(BasePage):
         return self.page.get_by_role("main")
     
     @property
-    def navigation_links(self):
+    def navigation_links(self) -> Locator:
         """
         Locate all navigation links in the navigation bar.
         

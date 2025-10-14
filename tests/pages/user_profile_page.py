@@ -65,7 +65,7 @@ Example Usage in Step Definitions:
 from typing import Optional, Dict, Any
 
 import allure
-from playwright.sync_api import Page
+from playwright.sync_api import Page, Locator
 
 from tests.pages.base_page import BasePage
 
@@ -146,7 +146,7 @@ class UserProfilePage(BasePage):
     # Locator Properties using stable, semantic selectors
     
     @property
-    def profile_heading(self):
+    def profile_heading(self) -> Locator:
         """
         Locate the main profile page heading.
         
@@ -174,7 +174,7 @@ class UserProfilePage(BasePage):
         return self.page.get_by_role("heading", name="Account Settings")
     
     @property
-    def first_name_input(self):
+    def first_name_input(self) -> Locator:
         """
         Locate the first name input field.
         
@@ -200,7 +200,7 @@ class UserProfilePage(BasePage):
         return self.page.get_by_role("textbox", name="First Name")
     
     @property
-    def last_name_input(self):
+    def last_name_input(self) -> Locator:
         """
         Locate the last name input field.
         
@@ -224,7 +224,7 @@ class UserProfilePage(BasePage):
         return self.page.get_by_role("textbox", name="Last Name")
     
     @property
-    def email_input(self):
+    def email_input(self) -> Locator:
         """
         Locate the email input field.
         
@@ -249,7 +249,7 @@ class UserProfilePage(BasePage):
         return self.page.get_by_role("textbox", name="Email")
     
     @property
-    def current_password_input(self):
+    def current_password_input(self) -> Locator:
         """
         Locate the current password input field for password changes.
         
@@ -267,7 +267,7 @@ class UserProfilePage(BasePage):
         return self.page.get_by_label("Current Password")
     
     @property
-    def new_password_input(self):
+    def new_password_input(self) -> Locator:
         """
         Locate the new password input field.
         
@@ -284,7 +284,7 @@ class UserProfilePage(BasePage):
         return self.page.get_by_label("New Password")
     
     @property
-    def confirm_password_input(self):
+    def confirm_password_input(self) -> Locator:
         """
         Locate the password confirmation input field.
         
@@ -302,7 +302,7 @@ class UserProfilePage(BasePage):
         return self.page.get_by_label("Confirm Password")
     
     @property
-    def save_button(self):
+    def save_button(self) -> Locator:
         """
         Locate the save/update profile button.
         
@@ -327,7 +327,7 @@ class UserProfilePage(BasePage):
         return self.page.get_by_role("button", name="Update Profile")
     
     @property
-    def cancel_button(self):
+    def cancel_button(self) -> Locator:
         """
         Locate the cancel button.
         
@@ -344,7 +344,7 @@ class UserProfilePage(BasePage):
         return self.page.get_by_role("button", name="Cancel")
     
     @property
-    def success_message(self):
+    def success_message(self) -> Locator:
         """
         Locate the success notification alert.
         
@@ -372,7 +372,7 @@ class UserProfilePage(BasePage):
         return self.page.get_by_test_id("success-message")
     
     @property
-    def error_message(self):
+    def error_message(self) -> Locator:
         """
         Locate the error notification alert.
         
@@ -747,7 +747,7 @@ class UserProfilePage(BasePage):
             )
         
         # Get error message text
-        actual_error = error_msg.inner_text()
+        actual_error = str(error_msg.inner_text())
         
         # Attach error message to Allure report
         allure.attach(
@@ -796,7 +796,7 @@ class UserProfilePage(BasePage):
             ```
         """
         # Get email input value
-        email_value = self.email_input.input_value()
+        email_value = str(self.email_input.input_value())
         
         # Attach current email to Allure report (may contain sensitive data warning)
         allure.attach(

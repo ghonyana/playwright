@@ -98,7 +98,9 @@ def generate_unique_email(domain: str = "test.local") -> str:
         >>> assert email1.endswith("@test.local")
     """
     timestamp = int(time.time() * 1000)
-    random_suffix = fake.random_int(1000, 9999)
+    # Use larger random range (100000-999999) to minimize collision probability
+    # even when generating many emails within the same millisecond
+    random_suffix = fake.random_int(100000, 999999)
     return f"user_{timestamp}_{random_suffix}@{domain}"
 
 
@@ -131,19 +133,23 @@ def generate_address_data(country: str = "US") -> Dict[str, str]:
             "country": "US"
         }
     elif country == "UK":
+        # Use UK-specific Faker locale for county and postcode
+        fake_uk = Faker('en_GB')
         return {
-            "street": fake.street_address(),
-            "city": fake.city(),
-            "state": fake.county(),
-            "zip_code": fake.postcode(),
+            "street": fake_uk.street_address(),
+            "city": fake_uk.city(),
+            "state": fake_uk.county(),
+            "zip_code": fake_uk.postcode(),
             "country": "UK"
         }
     elif country == "CA":
+        # Use CA-specific Faker locale for province and postal code
+        fake_ca = Faker('en_CA')
         return {
-            "street": fake.street_address(),
-            "city": fake.city(),
-            "state": fake.province_abbr(),
-            "zip_code": fake.postalcode(),
+            "street": fake_ca.street_address(),
+            "city": fake_ca.city(),
+            "state": fake_ca.province_abbr(),
+            "zip_code": fake_ca.postcode(),
             "country": "CA"
         }
     else:

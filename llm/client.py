@@ -315,6 +315,10 @@ def get_llm_client() -> LLMClient:
     """
     # Read provider configuration from environment
     provider = os.getenv("LLM_PROVIDER", "ollama").lower().strip()
+    # Treat empty string as not set (use default)
+    if not provider:
+        provider = "ollama"
+    
     model = os.getenv("LLM_MODEL")
     base_url = os.getenv("LLM_BASE_URL")
     

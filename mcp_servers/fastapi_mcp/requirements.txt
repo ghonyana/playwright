@@ -1,0 +1,23 @@
+# FastAPI MCP Server Dependencies
+# Purpose: Model Context Protocol server for deterministic test data management
+# Provides JSON-RPC tools: seed_user, build_payload, reset_env, query_state
+# Python Version: 3.9+ required for async-first capabilities
+
+# Core Web Framework
+fastapi==0.118.0           # Modern async web framework for MCP JSON-RPC endpoints
+uvicorn[standard]==0.34.0  # High-performance ASGI server with websocket support
+
+# Data Validation and Configuration
+pydantic==2.10.5           # Data validation and settings management with v2 performance
+pydantic-settings==2.7.0   # Environment-based configuration management
+
+# Authentication and Security
+python-jose==3.3.0         # JWT token generation and validation for MCP authentication
+passlib==1.7.4             # Secure password hashing for test user credentials
+
+# Request Processing
+python-multipart==0.0.20   # Multipart form data parsing support
+
+# Optional Database Support (for state management)
+sqlalchemy==2.0.38         # Modern async ORM for test data persistence
+alembic==1.14.3            # Database schema migrations for test environment setup

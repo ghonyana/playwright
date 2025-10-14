@@ -165,11 +165,13 @@ class AuthAPIClient(BaseAPIClient):
             remember_me=remember_me
         )
         
-        return self.post(
+        response = self.post(
             endpoint="/auth/login",
             request_model=request,
             response_model=LoginResponse
         )
+        assert response is not None, "Login response should not be None"
+        return response
     
     @allure.step("Refresh authentication token")
     def refresh_token(self, refresh_token: str) -> TokenRefreshResponse:
@@ -225,6 +227,7 @@ class AuthAPIClient(BaseAPIClient):
             request_model=request,
             response_model=TokenRefreshResponse
         )
+        assert response is not None, "Refresh token response should not be None"
         
         # Validate that required token fields are present per schema
         assert response.access_token, "access_token missing from refresh response"
@@ -313,11 +316,13 @@ class AuthAPIClient(BaseAPIClient):
         """
         request = PasswordResetRequest(email=email)
         
-        return self.post(
+        response = self.post(
             endpoint="/auth/password-reset",
             request_model=request,
             response_model=PasswordResetResponse
         )
+        assert response is not None, "Password reset response should not be None"
+        return response
     
     @allure.step("Verify JWT token validity")
     def verify_token(self, token: str) -> bool:

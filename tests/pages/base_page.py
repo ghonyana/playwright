@@ -85,13 +85,17 @@ class BasePage:
             ValueError: If neither base_url parameter nor BASE_URL env var is provided
         """
         self.page: Page = page
-        self.base_url: str = base_url or os.getenv("BASE_URL", "")
+        # Get base_url from parameter or environment variable
+        url_value: Optional[str] = base_url or os.getenv("BASE_URL", None)
         
-        if not self.base_url:
+        if not url_value:
             raise ValueError(
                 "BASE_URL must be provided either as parameter or environment variable. "
                 "Set BASE_URL environment variable or pass base_url parameter."
             )
+        
+        # Now we know url_value is not None, assign to typed attribute
+        self.base_url: str = url_value
         
         # Ensure base_url doesn't end with trailing slash for consistent URL joining
         self.base_url = self.base_url.rstrip("/")
@@ -107,7 +111,7 @@ class BasePage:
         This internal method registers a console event handler that filters
         and stores error-level messages for later retrieval and debugging.
         """
-        def handle_console_message(msg):
+        def handle_console_message(msg: Any) -> None:
             """Capture console error messages."""
             if msg.type == "error":
                 self._console_errors.append(f"[{msg.type}] {msg.text}")
@@ -149,8 +153,10 @@ class BasePage:
         )
         
         # Perform navigation
-        kwargs = {"timeout": timeout} if timeout else {}
-        self.page.goto(full_url, **kwargs)
+        if timeout:
+            self.page.goto(full_url, timeout=timeout)
+        else:
+            self.page.goto(full_url)
     
     @allure.step("Wait for page to load (state: {state})")
     def wait_for_load(self, state: str = "networkidle", timeout: Optional[int] = None) -> None:
@@ -178,8 +184,12 @@ class BasePage:
             page_obj.wait_for_load("networkidle")  # Ensure all AJAX calls complete
             ```
         """
-        kwargs = {"timeout": timeout} if timeout else {}
-        self.page.wait_for_load_state(state, **kwargs)
+        # Cast state to Any to avoid mypy literal type checking
+        state_param: Any = state
+        if timeout:
+            self.page.wait_for_load_state(state_param, timeout=timeout)
+        else:
+            self.page.wait_for_load_state(state_param)
         
         allure.attach(
             f"Page reached load state: {state}",
@@ -291,13 +301,15 @@ class BasePage:
             heading = page_obj.find_by_role("heading", name="Welcome", exact=True)
             ```
         """
-        kwargs = {}
+        # Cast role to Any to avoid mypy literal type checking
+        role_param: Any = role
+        kwargs: Dict[str, Any] = {}
         if name is not None:
             kwargs["name"] = name
         if exact:
             kwargs["exact"] = exact
         
-        return self.page.get_by_role(role, **kwargs)
+        return self.page.get_by_role(role_param, **kwargs)
     
     def find_by_label(self, text: str, exact: bool = False) -> Any:
         """
@@ -374,10 +386,12 @@ class BasePage:
             page_obj.wait_for_url("/dashboard")  # Assert navigation occurred
             ```
         """
-        kwargs = {"timeout": timeout} if timeout else {}
-        kwargs["wait_until"] = wait_until
-        
-        self.page.wait_for_url(url_pattern, **kwargs)
+        # Cast wait_until to Any to avoid mypy literal type checking
+        wait_until_param: Any = wait_until
+        if timeout:
+            self.page.wait_for_url(url_pattern, timeout=timeout, wait_until=wait_until_param)
+        else:
+            self.page.wait_for_url(url_pattern, wait_until=wait_until_param)
     
     def get_current_url(self) -> str:
         """

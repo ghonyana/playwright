@@ -153,7 +153,7 @@ INSTRUCTIONS:
      And I type "password123" in "input[name='password']"
      And I click the button at coordinates (150, 300)
      Then the HTTP response code is 200
-     And the JSON response contains {"status": "success"}
+     And the JSON response contains {{"status": "success"}}
    ```
 
 OUTPUT REQUIREMENTS:

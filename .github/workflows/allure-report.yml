@@ -1,0 +1,171 @@
+# Allure Report Generation and Publishing Workflow
+# Triggers after Test Execution workflow completes to generate comprehensive HTML reports
+# Runs regardless of test success/failure to ensure visibility into test results
+# Publishes reports to GitHub Pages for team access and preserves historical trends
+
+name: Allure Report Generation
+
+# Trigger on completion of Test Execution workflow
+on:
+  workflow_run:
+    workflows: ["Test Execution"]
+    types:
+      - completed
+
+# Required permissions for report generation and GitHub Pages deployment
+permissions:
+  contents: write      # Access repository content and gh-pages branch
+  pages: write         # Deploy to GitHub Pages
+  id-token: write      # OIDC token for GitHub Pages authentication
+
+jobs:
+  generate-report:
+    name: Generate and Publish Allure Report
+    runs-on: ubuntu-latest
+    
+    # Run report generation even if tests failed (critical for debugging)
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure' }}
+    
+    steps:
+      # Step 1: Checkout repository code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for potential report context
+      
+      # Step 2: Download all test result artifacts from matrix jobs
+      # Pattern matches: allure-results-chromium-py3.11, allure-results-firefox-py3.12, etc.
+      - name: Download All Test Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: 'allure-results-*'
+          path: allure-results-combined/
+          merge-multiple: true  # Combine all matrix job results into single directory
+        continue-on-error: false  # Fail if no artifacts found (indicates upstream issue)
+      
+      # Step 3: Download Allure history for trend analysis
+      # Preserves historical test execution data from previous runs
+      - name: Checkout gh-pages for History
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+        continue-on-error: true  # First run won't have gh-pages branch yet
+        if: always()
+      
+      # Step 4: Copy historical data to current report generation
+      - name: Copy Allure History
+        run: |
+          if [ -d "gh-pages/allure-report/history" ]; then
+            echo "📈 Copying Allure history for trend analysis..."
+            mkdir -p allure-results-combined/history
+            cp -r gh-pages/allure-report/history/* allure-results-combined/history/
+            echo "✅ History copied successfully"
+          else
+            echo "ℹ️ No previous history found (this is normal for first run)"
+          fi
+        if: always()
+      
+      # Step 5: Install Allure CLI for report generation
+      - name: Install Allure CLI
+        run: |
+          echo "⬇️ Downloading Allure 2.30.0..."
+          wget -q https://github.com/allure-framework/allure2/releases/download/2.30.0/allure-2.30.0.tgz
+          
+          echo "📦 Extracting Allure..."
+          tar -zxf allure-2.30.0.tgz
+          
+          echo "🔧 Installing to /opt/allure..."
+          sudo mv allure-2.30.0 /opt/allure
+          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
+          
+          echo "✅ Allure CLI installed successfully"
+          allure --version
+      
+      # Step 6: Generate comprehensive HTML report
+      - name: Generate Allure Report
+        run: |
+          echo "📊 Generating Allure HTML report..."
+          allure generate allure-results-combined/ -o allure-report --clean
+          
+          echo "✅ Report generated successfully"
+          echo "📁 Report location: allure-report/"
+          
+          # Display report statistics
+          if [ -f "allure-report/widgets/summary.json" ]; then
+            echo "📈 Report Statistics:"
+            cat allure-report/widgets/summary.json | jq '.'
+          fi
+        if: always()
+      
+      # Step 7: Upload report as workflow artifact for long-term storage
+      - name: Upload Allure Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ github.run_number }}
+          path: allure-report/
+          retention-days: 90  # Longer retention for historical analysis
+          if-no-files-found: error
+        if: always()
+      
+      # Step 8: Publish report to GitHub Pages (main branch only)
+      - name: Publish Report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./allure-report
+          destination_dir: allure-report  # Single location for latest report
+          keep_files: false  # Replace with latest report
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'Deploy Allure report for run #${{ github.run_number }}'
+        if: github.ref == 'refs/heads/main'
+      
+      # Step 9: Add report link to GitHub Actions summary
+      - name: Add Report Link to Summary
+        run: |
+          echo "### 📊 Allure Report Generated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Test Execution Status:** ${{ github.event.workflow_run.conclusion }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/allure-report"
+            echo "🔗 **[View Full Allure Report]($REPORT_URL)**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Report will be available at GitHub Pages in a few moments." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "📦 Report uploaded as workflow artifact: \`allure-report-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ GitHub Pages publishing is only enabled for main branch commits." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Run:** #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+        if: always()
+      
+      # Step 10: Report generation status
+      - name: Report Generation Status
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "✅ Allure Report Generation Complete"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          echo "📊 Report Details:"
+          echo "   • Workflow Run: #${{ github.run_number }}"
+          echo "   • Test Status: ${{ github.event.workflow_run.conclusion }}"
+          echo "   • Branch: ${{ github.ref }}"
+          echo "   • Artifact: allure-report-${{ github.run_number }}"
+          echo ""
+          
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "🌐 GitHub Pages: Report will be published shortly"
+          else
+            echo "📦 Artifact Only: Download from workflow artifacts"
+          fi
+          
+          echo ""
+          echo "════════════════════════════════════════════════════════════════"
+        if: always()

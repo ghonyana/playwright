@@ -91,7 +91,7 @@ def test_login_api_with_valid_credentials(auth_api: AuthAPIClient, mcp_client: M
     # Use timestamp to ensure unique email per test run
     with allure.step("Seed test user via MCP"):
         unique_email = f"auth.test.{int(time.time())}@example.com"
-        user = mcp_client.seed_user(role="viewer", email=unique_email)
+        user = mcp_client.seed_user(role="customer", email=unique_email)
         allure.attach(
             f"User ID: {user.get('id')}\nEmail: {user['email']}\nRole: {user['role']}",
             name="Generated Test User",
@@ -152,7 +152,7 @@ def test_login_api_with_invalid_credentials(auth_api: AuthAPIClient, mcp_client:
     """
     # Generate test user via MCP
     with allure.step("Seed test user via MCP"):
-        user = mcp_client.seed_user(role="viewer")
+        user = mcp_client.seed_user(role="customer")
     
     with allure.step("Attempt login with incorrect password"):
         with pytest.raises(httpx.HTTPStatusError) as exc_info:
@@ -241,7 +241,7 @@ def test_refresh_token(auth_api: AuthAPIClient, mcp_client: MCPClient):
     """
     # Setup: Login to get initial tokens
     with allure.step("Setup: Login to obtain initial tokens"):
-        user = mcp_client.seed_user(role="editor")
+        user = mcp_client.seed_user(role="moderator")
         login_response = auth_api.login(
             email=user['email'],
             password=user['password']
@@ -341,7 +341,7 @@ def test_logout_api(auth_api: AuthAPIClient, mcp_client: MCPClient):
     """
     # Setup: Login to get authentication
     with allure.step("Setup: Login to obtain authentication"):
-        user = mcp_client.seed_user(role="viewer")
+        user = mcp_client.seed_user(role="customer")
         login_response = auth_api.login(
             email=user['email'],
             password=user['password']
@@ -406,7 +406,7 @@ def test_password_reset_request(auth_api: AuthAPIClient, mcp_client: MCPClient):
         httpx.HTTPError: If API request fails unexpectedly
     """
     with allure.step("Setup: Create user for password reset"):
-        user = mcp_client.seed_user(role="viewer")
+        user = mcp_client.seed_user(role="customer")
     
     with allure.step(f"Request password reset for {user['email']}"):
         response = auth_api.request_password_reset(email=user['email'])

@@ -31,12 +31,12 @@ class UserRole(str, Enum):
     
     Attributes:
         ADMIN: Administrative user with full system access
-        EDITOR: User with content creation and modification permissions
-        VIEWER: Read-only user with limited access permissions
+        CUSTOMER: Standard customer user with normal access permissions
+        MODERATOR: Moderator user with elevated permissions for content management
     """
     ADMIN = "admin"
-    EDITOR = "editor"
-    VIEWER = "viewer"
+    CUSTOMER = "customer"
+    MODERATOR = "moderator"
 
 
 class SeedUserRequest(BaseModel):
@@ -48,7 +48,7 @@ class SeedUserRequest(BaseModel):
     password and create the user account in the test environment database.
     
     Attributes:
-        role: User authorization role (ADMIN, EDITOR, or VIEWER)
+        role: User authorization role (ADMIN, CUSTOMER, or MODERATOR)
         email: Optional email address (auto-generated if not provided)
         first_name: Optional user first name for profile
         last_name: Optional user last name for profile
@@ -68,7 +68,7 @@ class SeedUserRequest(BaseModel):
     """
     role: UserRole = Field(
         ...,
-        description="User role determining access permissions (ADMIN, EDITOR, or VIEWER)"
+        description="User role determining access permissions (ADMIN, CUSTOMER, or MODERATOR)"
     )
     email: Optional[EmailStr] = Field(
         None,

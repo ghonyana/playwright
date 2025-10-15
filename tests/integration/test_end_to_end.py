@@ -110,7 +110,7 @@ def test_complete_user_registration_login_profile_flow(
     # Step 1: Create test user via MCP (deterministic data)
     with allure.step("Create test user via MCP server"):
         user_data = mcp_client.seed_user(
-            role="viewer",
+            role="customer",
             attributes={"first_name": "Integration", "last_name": "Test"}
         )
         test_email = user_data["email"]
@@ -245,7 +245,7 @@ def test_api_created_user_can_login_via_ui(
     with allure.step("Admin creates new user via API"):
         payload = mcp_client.build_payload(
             template="create_user",
-            parameters={"role": "editor", "name": "API Created User"}
+            parameters={"role": "moderator", "name": "API Created User"}
         )
         
         create_request = CreateUserRequest(**payload)
@@ -320,7 +320,7 @@ def test_ui_changes_immediately_visible_via_api(
     
     # Setup: Create and login user
     with allure.step("Setup: Create test user and login via UI"):
-        user_data = mcp_client.seed_user(role="viewer")
+        user_data = mcp_client.seed_user(role="customer")
         # Login via API to get auth token for API calls
         login_response = auth_api.login(email=user_data["email"], password=user_data["password"], remember_me=False)
         users_api.set_auth_token(login_response.access_token)
@@ -429,7 +429,7 @@ def test_api_validation_errors_displayed_in_ui(
     
     # Setup: Create first user and login
     with allure.step("Setup: Create primary test user and login"):
-        user_data = mcp_client.seed_user(role="viewer")
+        user_data = mcp_client.seed_user(role="customer")
         
         login_page = LoginPage(page)
         login_page.navigate_to_login()
@@ -443,7 +443,7 @@ def test_api_validation_errors_displayed_in_ui(
     
     # Setup: Create second user to cause email conflict
     with allure.step("Create second user with different email"):
-        existing_user = mcp_client.seed_user(role="viewer")
+        existing_user = mcp_client.seed_user(role="customer")
         existing_email = existing_user["email"]
         
         allure.attach(
@@ -517,11 +517,11 @@ def test_multiple_users_parallel_sessions(
     # Step 1: Create two isolated users
     with allure.step("Create two isolated test users"):
         user_a = mcp_client.seed_user(
-            role="viewer",
+            role="customer",
             attributes={"first_name": "User", "last_name": "Alpha"}
         )
         user_b = mcp_client.seed_user(
-            role="viewer",
+            role="customer",
             attributes={"first_name": "User", "last_name": "Beta"}
         )
         
@@ -630,7 +630,7 @@ def test_authentication_token_workflow(
     # Step 1: Create test user
     with allure.step("Create test user via MCP"):
         user_data = mcp_client.seed_user(
-            role="editor",
+            role="moderator",
             attributes={"first_name": "Auth", "last_name": "Test"}
         )
         test_email = user_data["email"]
@@ -638,7 +638,7 @@ def test_authentication_token_workflow(
         user_id = user_data["user_id"]
         
         allure.attach(
-            f"Test user: {test_email}\nRole: editor",
+            f"Test user: {test_email}\nRole: moderator",
             name="User Credentials",
             attachment_type=allure.attachment_type.TEXT
         )
@@ -681,7 +681,7 @@ def test_authentication_token_workflow(
             f"Email mismatch: expected {test_email}, got {user_profile.email}"
         # Note: MCP server maps editor -> moderator in the sample app
         assert user_profile.role.value == "moderator", \
-            f"Role mismatch: expected moderator (mapped from editor), got {user_profile.role.value}"
+            f"Role mismatch: expected moderator (already moderator), got {user_profile.role.value}"
         
         allure.attach(
             f"API Profile Fetch Successful:\n"

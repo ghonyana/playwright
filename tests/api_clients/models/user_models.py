@@ -29,24 +29,18 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 class UserRole(str, Enum):
     """
-    Enumeration of valid user roles with associated permissions.
+    Enumeration of valid user roles supported by the sample application.
     
     Roles define access levels:
     - ADMIN: Full system access including user management
-    - USER: Standard authenticated user access
-    - EDITOR: Content creation and editing permissions
-    - MODERATOR: Moderation and management permissions (mapped from editor in MCP)
-    - VIEWER: Read-only access to resources
-    - CUSTOMER: Customer-level access with limited permissions (mapped from viewer in MCP)
-    - GUEST: Limited unauthenticated access
+    - CUSTOMER: Standard customer user with normal access permissions
+    - MODERATOR: Moderation and management permissions with elevated access
+    
+    Note: These roles match the sample_app's valid roles (customer, admin, moderator).
     """
     ADMIN = "admin"
-    USER = "user"
-    EDITOR = "editor"
-    MODERATOR = "moderator"
-    VIEWER = "viewer"
     CUSTOMER = "customer"
-    GUEST = "guest"
+    MODERATOR = "moderator"
 
 
 class UserStatus(str, Enum):

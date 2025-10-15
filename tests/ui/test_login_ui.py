@@ -38,7 +38,7 @@ def test_login_with_valid_credentials(login_page, dashboard_page, mcp_client):
     """
     # Get test user from MCP server (no hardcoded data)
     # Per user directive: "Use MCP tools for data/state (don't hard-code test data)"
-    user = mcp_client.seed_user(role="customer", email_prefix="valid_user")
+    user = mcp_client.seed_user(role="customer")
     
     # Navigate to login page
     login_page.navigate_to_login()
@@ -51,7 +51,9 @@ def test_login_with_valid_credentials(login_page, dashboard_page, mcp_client):
     
     # Verify welcome message contains user's name
     welcome_message = dashboard_page.get_welcome_message()
-    assert user["name"] in welcome_message or user["email"] in welcome_message, (
+    # MCP returns first_name and last_name, not "name"
+    user_name = f"{user.get('first_name', '')} {user.get('last_name', '')}".strip()
+    assert user_name in welcome_message or user["email"] in welcome_message, (
         f"Expected welcome message to contain user identifier, "
         f"but got: '{welcome_message}'"
     )

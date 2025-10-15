@@ -215,7 +215,7 @@ def test_user_exists(mcp_client: MCPClient, api_context: Dict[str, Any], role: s
     Args:
         mcp_client: MCPClient fixture for deterministic user creation
         api_context: Shared context for storing user data
-        role: User role (admin, user, editor, viewer, guest)
+        role: User role (admin, customer, moderator)
     
     Returns:
         Dict[str, Any]: Created user data with id, email, password, auth_token
@@ -274,7 +274,7 @@ def create_user_with_role(
     
     Example Gherkin:
         When I create a user with role "admin"
-        When I create a user with role "editor"
+        When I create a user with role "moderator"
     """
     # Generate payload via MCP server (no hardcoded test data)
     payload_params = {"role": role}
@@ -383,7 +383,7 @@ def update_user_role(
         role: New role to assign
     
     Example Gherkin:
-        When I update the user with role "editor"
+        When I update the user with role "moderator"
     """
     user_id = api_context.get("user_id")
     assert user_id, "No user ID available for update"

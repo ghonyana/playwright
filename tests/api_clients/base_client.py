@@ -209,7 +209,14 @@ class BaseAPIClient:
         """
         response = self.client.get(endpoint, params=params)
         response.raise_for_status()
-        return response_model(**response.json())
+        
+        # Handle API responses that wrap data in {"data": ..., "status": "success"} format
+        response_json = response.json()
+        if isinstance(response_json, dict) and "data" in response_json and "status" in response_json:
+            # Unwrap the data field for endpoints that use this format
+            response_json = response_json["data"]
+        
+        return response_model(**response_json)
     
     def post(
         self,
@@ -258,7 +265,12 @@ class BaseAPIClient:
         
         # Handle different response scenarios
         if response_model and response.text:
-            return response_model(**response.json())
+            # Handle API responses that wrap data in {"data": ..., "status": "success"} format
+            response_json = response.json()
+            if isinstance(response_json, dict) and "data" in response_json and "status" in response_json:
+                # Unwrap the data field for endpoints that use this format
+                response_json = response_json["data"]
+            return response_model(**response_json)
         elif response.text:
             return response.json()
         else:
@@ -297,7 +309,14 @@ class BaseAPIClient:
         payload = request_model.model_dump(exclude_none=True)
         response = self.client.put(endpoint, json=payload)
         response.raise_for_status()
-        return response_model(**response.json())
+        
+        # Handle API responses that wrap data in {"data": ..., "status": "success"} format
+        response_json = response.json()
+        if isinstance(response_json, dict) and "data" in response_json and "status" in response_json:
+            # Unwrap the data field for endpoints that use this format
+            response_json = response_json["data"]
+        
+        return response_model(**response_json)
     
     def patch(
         self,
@@ -333,7 +352,14 @@ class BaseAPIClient:
         payload = request_model.model_dump(exclude_none=True)
         response = self.client.patch(endpoint, json=payload)
         response.raise_for_status()
-        return response_model(**response.json())
+        
+        # Handle API responses that wrap data in {"data": ..., "status": "success"} format
+        response_json = response.json()
+        if isinstance(response_json, dict) and "data" in response_json and "status" in response_json:
+            # Unwrap the data field for endpoints that use this format
+            response_json = response_json["data"]
+        
+        return response_model(**response_json)
     
     def delete(self, endpoint: str) -> None:
         """

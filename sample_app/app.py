@@ -15,7 +15,7 @@ specifically for demonstrating test automation patterns, not production use.
 
 import os
 import secrets
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, make_response
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -142,6 +142,8 @@ def create_app():
             # Extract form data
             email = request.form.get('email', '').strip()
             password = request.form.get('password', '').strip()
+            # Checkbox sends 'true' when checked, None when unchecked
+            remember_me = request.form.get('remember_me') == 'true'
             
             # Basic validation
             if not email or not password:
@@ -170,8 +172,29 @@ def create_app():
                     session['user_role'] = user['role']
                     session.permanent = True
                     
+                    # Handle remember me - set auth token cookie if requested
+                    if remember_me:
+                        import secrets
+                        auth_token = secrets.token_hex(32)
+                        session['auth_token'] = auth_token
+                        session['remember_me'] = True
+                    
                     # Redirect to dashboard
-                    return redirect(url_for('dashboard'))
+                    response = make_response(redirect(url_for('dashboard')))
+                    
+                    # Set remember me cookie with longer expiration if requested
+                    if remember_me:
+                        from datetime import timedelta
+                        response.set_cookie(
+                            'auth_token',
+                            session.get('auth_token', ''),
+                            max_age=30*24*60*60,  # 30 days
+                            httponly=True,
+                            secure=False,  # Set to True in production with HTTPS
+                            samesite='Lax'
+                        )
+                    
+                    return response
                 else:
                     # Authentication failed
                     return render_template(

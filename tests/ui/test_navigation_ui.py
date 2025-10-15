@@ -27,7 +27,7 @@ from playwright.sync_api import expect
 @allure.feature("Navigation")
 @allure.story("Main Menu Navigation")
 @allure.severity(allure.severity_level.NORMAL)
-def test_main_menu_navigation(dashboard_page):
+def test_main_menu_navigation(authenticated_dashboard):
     """
     Test navigating through main menu items and verify correct page loads.
     
@@ -36,7 +36,7 @@ def test_main_menu_navigation(dashboard_page):
     content loading. Uses stable ARIA role-based selectors via page objects.
     
     Test Flow:
-    1. Navigate to dashboard (starting point)
+    1. Start from authenticated dashboard (pre-logged in)
     2. Click on "Users" menu item and verify navigation
     3. Click on "Settings" menu item and verify navigation
     4. Click on "Reports" menu item and verify navigation
@@ -48,11 +48,12 @@ def test_main_menu_navigation(dashboard_page):
     - No console errors during navigation
     
     Args:
-        dashboard_page: DashboardPage fixture from conftest.py providing
-                       page object with navigation methods
+        authenticated_dashboard: Authenticated DashboardPage fixture from conftest.py
+                                providing page object with navigation methods and
+                                pre-authenticated session
     """
-    # Navigate to dashboard as starting point
-    dashboard_page.navigate()
+    # Already authenticated and on dashboard
+    dashboard_page = authenticated_dashboard
     expect(dashboard_page.page).to_have_url(dashboard_page.get_dashboard_url())
     
     # Test navigation to Users section
@@ -83,7 +84,7 @@ def test_main_menu_navigation(dashboard_page):
 @allure.feature("Navigation")
 @allure.story("Breadcrumb Navigation")
 @allure.severity(allure.severity_level.NORMAL)
-def test_breadcrumb_navigation(dashboard_page):
+def test_breadcrumb_navigation(authenticated_dashboard):
     """
     Test breadcrumb navigation functionality for hierarchical page traversal.
     
@@ -92,11 +93,12 @@ def test_breadcrumb_navigation(dashboard_page):
     levels of depth and verifies correct URL and content updates.
     
     Test Flow:
-    1. Navigate to a deep nested page (Users > User Details > Edit Profile)
-    2. Verify full breadcrumb trail is displayed
-    3. Click on middle breadcrumb (User Details) and verify navigation
-    4. Click on root breadcrumb (Users) and verify navigation
-    5. Verify breadcrumbs update correctly at each level
+    1. Start from authenticated dashboard (pre-logged in)
+    2. Navigate to a deep nested page (Users > User Details > Edit Profile)
+    3. Verify full breadcrumb trail is displayed
+    4. Click on middle breadcrumb (User Details) and verify navigation
+    5. Click on root breadcrumb (Users) and verify navigation
+    6. Verify breadcrumbs update correctly at each level
     
     Assertions:
     - Breadcrumb trail displays correct hierarchy
@@ -105,10 +107,12 @@ def test_breadcrumb_navigation(dashboard_page):
     - Page content matches expected breadcrumb level
     
     Args:
-        dashboard_page: DashboardPage fixture providing breadcrumb navigation
+        authenticated_dashboard: Authenticated DashboardPage fixture with pre-authenticated session
     """
+    # Already authenticated and on dashboard
+    dashboard_page = authenticated_dashboard
+    
     # Navigate to deep nested page: Dashboard > Users > User Profile > Edit
-    dashboard_page.navigate()
     dashboard_page.navigate_to_section("users")
     dashboard_page.navigate_to_user_profile(user_id="test-user-123")
     dashboard_page.navigate_to_edit_profile()
@@ -148,7 +152,7 @@ def test_breadcrumb_navigation(dashboard_page):
 @allure.feature("Navigation")
 @allure.story("User Menu")
 @allure.severity(allure.severity_level.NORMAL)
-def test_user_menu_access(dashboard_page):
+def test_user_menu_access(authenticated_dashboard):
     """
     Test opening and interacting with user menu dropdown.
     
@@ -157,7 +161,7 @@ def test_user_menu_access(dashboard_page):
     menu item interactions, and proper dropdown behavior.
     
     Test Flow:
-    1. Navigate to dashboard
+    1. Start from authenticated dashboard (pre-logged in)
     2. Open user menu dropdown
     3. Verify all expected menu items are visible
     4. Click on "Profile" menu item and verify navigation
@@ -171,10 +175,10 @@ def test_user_menu_access(dashboard_page):
     - Menu closes automatically after selection
     
     Args:
-        dashboard_page: DashboardPage fixture with user menu methods
+        authenticated_dashboard: Authenticated DashboardPage fixture with pre-authenticated session
     """
-    # Navigate to dashboard
-    dashboard_page.navigate()
+    # Already authenticated and on dashboard
+    dashboard_page = authenticated_dashboard
     expect(dashboard_page.page).to_have_url(dashboard_page.get_dashboard_url())
     
     # Open user menu dropdown
@@ -217,7 +221,7 @@ def test_user_menu_access(dashboard_page):
 @allure.feature("Navigation")
 @allure.story("Page Transitions")
 @allure.severity(allure.severity_level.MINOR)
-def test_page_transition_animations(dashboard_page):
+def test_page_transition_animations(authenticated_dashboard):
     """
     Test smooth page transitions without errors or visual glitches.
     
@@ -227,7 +231,7 @@ def test_page_transition_animations(dashboard_page):
     paths.
     
     Test Flow:
-    1. Navigate to dashboard
+    1. Start from authenticated dashboard (pre-logged in)
     2. Navigate to multiple different sections in sequence
     3. Verify each transition completes successfully
     4. Check for console errors throughout
@@ -240,10 +244,10 @@ def test_page_transition_animations(dashboard_page):
     - Page content loads fully after each transition
     
     Args:
-        dashboard_page: DashboardPage fixture for page transitions
+        authenticated_dashboard: Authenticated DashboardPage fixture with pre-authenticated session
     """
-    # Navigate to dashboard starting point
-    dashboard_page.navigate()
+    # Already authenticated and on dashboard
+    dashboard_page = authenticated_dashboard
     expect(dashboard_page.page).to_have_url(dashboard_page.get_dashboard_url())
     
     # Track console errors throughout test

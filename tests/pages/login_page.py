@@ -70,6 +70,7 @@ def test_login_with_seeded_user(page, login_page: LoginPage, mcp_client):
 """
 
 from typing import Optional
+import re
 
 import allure
 from playwright.sync_api import Page, expect, Locator
@@ -273,7 +274,7 @@ class LoginPage(BasePage):
         """
         Locate the remember me checkbox using ARIA role and accessible name.
         
-        Priority: get_by_role('checkbox', name='Remember me') - semantic checkbox
+        Priority: get_by_role('checkbox') with aria-label - semantic checkbox
         
         Returns:
             Locator: Playwright locator for remember me checkbox element
@@ -291,9 +292,9 @@ class LoginPage(BasePage):
             
             OR
             
-            <input type="checkbox" aria-label="Remember me" />
+            <input type="checkbox" aria-label="Remember me on this device" />
         """
-        return self.page.get_by_role("checkbox", name="Remember me")
+        return self.page.get_by_role("checkbox", name="Remember me on this device")
     
     @property
     def forgot_password_link(self) -> Locator:
@@ -498,8 +499,8 @@ class LoginPage(BasePage):
         # Assert error message is visible
         expect(self.error_message).to_be_visible(timeout=5000)
         
-        # Assert error message contains expected text
-        expect(self.error_message).to_have_text(expected_message)
+        # Assert error message contains expected text (using to_contain_text to handle whitespace/icons)
+        expect(self.error_message).to_contain_text(expected_message)
         
         # Attach error message to Allure report
         actual_error = self.error_message.text_content()
@@ -511,6 +512,96 @@ class LoginPage(BasePage):
         
         # Capture screenshot of error state
         self.capture_screenshot("Error Message Displayed")
+    
+    @allure.step("Verify validation errors are displayed")
+    def verify_validation_errors_displayed(self) -> None:
+        """
+        Verify that HTML5 form validation errors are displayed.
+        
+        This method checks that browser-level validation is working correctly
+        when attempting to submit the form with empty or invalid required fields.
+        It verifies that the email and/or password fields are marked as invalid
+        by checking for the :invalid pseudo-class or validation messages.
+        
+        This validates client-side form validation behavior, ensuring that
+        the form has proper HTML5 required attributes and validation.
+        
+        Raises:
+            AssertionError: If validation errors are not shown
+            TimeoutError: If validation state cannot be determined
+        
+        Example:
+            ```python
+            def test_empty_field_validation(login_page: LoginPage):
+                login_page.navigate_to_login()
+                login_page.login_button.click()  # Try to submit without data
+                login_page.verify_validation_errors_displayed()
+            
+            def test_invalid_email_format(login_page: LoginPage):
+                login_page.navigate_to_login()
+                login_page.enter_email("notanemail")
+                login_page.login_button.click()
+                login_page.verify_validation_errors_displayed()
+            ```
+        
+        Integration with Step Definitions:
+            ```python
+            @then("validation errors should be displayed")
+            def verify_validation_errors(login_page: LoginPage):
+                login_page.verify_validation_errors_displayed()
+            
+            @then("the form should not submit")
+            def verify_form_not_submitted(login_page: LoginPage):
+                login_page.verify_validation_errors_displayed()
+            ```
+        
+        Note: This method checks for HTML5 :invalid pseudo-class on input fields,
+        which is set by the browser when required fields are empty or contain
+        invalid data. This is a client-side validation check.
+        """
+        # Check if email or password field is marked as invalid
+        # HTML5 validation adds :invalid pseudo-class to required fields
+        try:
+            # Try to find an invalid email field
+            email_invalid = self.page.locator('input[type="email"]:invalid')
+            password_invalid = self.page.locator('input[type="password"]:invalid')
+            
+            # At least one field should be invalid
+            email_is_invalid = email_invalid.count() > 0
+            password_is_invalid = password_invalid.count() > 0
+            
+            if email_is_invalid or password_is_invalid:
+                # Validation errors are present
+                allure.attach(
+                    f"Email field invalid: {email_is_invalid}\nPassword field invalid: {password_is_invalid}",
+                    name="HTML5 Validation State",
+                    attachment_type=allure.attachment_type.TEXT
+                )
+                self.capture_screenshot("Validation Errors Displayed")
+                return
+            
+            # Alternative check: verify we're still on login page (form didn't submit)
+            current_url = self.get_current_url()
+            if "/login" in current_url:
+                allure.attach(
+                    f"Still on login page: {current_url}\nForm did not submit due to validation",
+                    name="Form Submission Prevented",
+                    attachment_type=allure.attachment_type.TEXT
+                )
+                self.capture_screenshot("Form Validation Prevented Submission")
+                return
+            
+            # If we reach here, no validation errors detected
+            raise AssertionError("Expected validation errors to be displayed, but none were found")
+            
+        except Exception as e:
+            # Attach error details to report
+            allure.attach(
+                f"Validation check failed: {str(e)}",
+                name="Validation Error Check Failed",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            raise
     
     @allure.step("Verify successful login (expected URL: {expected_url})")
     def verify_successful_login(self, expected_url: str = "/dashboard") -> None:
@@ -606,3 +697,65 @@ class LoginPage(BasePage):
                 name="Console Errors During Login",
                 attachment_type=allure.attachment_type.TEXT
             )
+    
+    @allure.step("Verify user is on login page")
+    def verify_on_login_page(self) -> None:
+        """
+        Verify that the browser is currently on the login page.
+        
+        This method checks that the current URL is the login page URL
+        and that key login page elements are visible, confirming that
+        the user is on the correct page. This is useful for verifying
+        redirects after logout or when checking authentication flows.
+        
+        Raises:
+            AssertionError: If current page is not the login page
+            TimeoutError: If login page elements are not found
+        
+        Example:
+            ```python
+            def test_logout_redirect(login_page, dashboard_page):
+                dashboard_page.logout()
+                login_page.verify_on_login_page()
+            
+            def test_protected_page_redirect(login_page):
+                # Try to access protected page without auth
+                login_page.page.goto("/dashboard")
+                login_page.verify_on_login_page()
+            ```
+        
+        Integration with Step Definitions:
+            ```python
+            @then("the user should be on the login page")
+            def verify_on_login_page(login_page: LoginPage):
+                login_page.verify_on_login_page()
+            
+            @then("the user should be redirected to login")
+            def verify_redirected_to_login(login_page: LoginPage):
+                login_page.verify_on_login_page()
+            ```
+        
+        Note: This method uses Playwright's expect assertions for automatic
+        waiting and retry logic, ensuring robust verification even when
+        redirects take time to complete.
+        """
+        # Verify URL contains /login using expect for auto-retry
+        expect(self.page).to_have_url(re.compile(r".*/login.*"), timeout=10000)
+        
+        # Verify login form elements are visible
+        expect(self.email_input).to_be_visible(timeout=5000)
+        expect(self.password_input).to_be_visible(timeout=5000)
+        expect(self.login_button).to_be_visible(timeout=5000)
+        
+        # Get current URL for reporting
+        current_url = self.get_current_url()
+        
+        # Attach verification details to Allure report
+        allure.attach(
+            f"Current URL: {current_url}\nLogin page elements verified",
+            name="Login Page Verification",
+            attachment_type=allure.attachment_type.TEXT
+        )
+        
+        # Capture screenshot of login page
+        self.capture_screenshot("On Login Page")

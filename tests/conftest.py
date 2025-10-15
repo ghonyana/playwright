@@ -586,6 +586,53 @@ def dashboard_page(page: Page) -> Any:
     return DashboardPage(page)
 
 
+@pytest.fixture
+def authenticated_dashboard(page: Page, login_page, dashboard_page, mcp_client) -> Any:
+    """
+    Authenticated DashboardPage fixture for tests requiring pre-authenticated access.
+    
+    This fixture provides a DashboardPage instance that is already authenticated,
+    allowing tests to skip login steps and directly test dashboard functionality.
+    It creates a test user via MCP, logs in, and returns the dashboard page object.
+    
+    Use this fixture for:
+    - Navigation tests that need authenticated access
+    - Dashboard feature tests
+    - Tests that assume user is already logged in
+    
+    Args:
+        page: Function-scoped Playwright page from fixture
+        login_page: LoginPage fixture for authentication
+        dashboard_page: DashboardPage fixture for dashboard interactions
+        mcp_client: MCPClient fixture for test user creation
+    
+    Returns:
+        DashboardPage: Configured dashboard page object with authenticated session
+    
+    Example:
+        def test_dashboard_navigation(authenticated_dashboard):
+            # Already logged in and on dashboard
+            authenticated_dashboard.navigate_to_section("users")
+            authenticated_dashboard.verify_section_loaded("users")
+    """
+    # Create test user via MCP
+    user = mcp_client.seed_user(role="customer")
+    
+    # Perform login
+    login_page.navigate_to_login()
+    login_page.login(
+        email=user["email"],
+        password=user["password"],
+        remember_me=False
+    )
+    
+    # Verify we're on dashboard
+    dashboard_page.verify_dashboard_loaded()
+    
+    # Return authenticated dashboard page object
+    return dashboard_page
+
+
 # ==============================================================================
 # Allure Reporting Configuration and Environment Metadata
 # ==============================================================================

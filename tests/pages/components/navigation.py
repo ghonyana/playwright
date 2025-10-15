@@ -508,20 +508,47 @@ class NavigationComponent(BasePage):
             ```
         """
         try:
-            # Ensure user menu is open
-            self.open_user_menu(timeout=timeout)
-            
-            # Wait for logout link to be visible
-            self.logout_link.wait_for(state="visible", timeout=timeout)
-            
-            allure.attach(
-                "Clicking logout link",
-                name="Logout Action",
-                attachment_type=allure.attachment_type.TEXT
-            )
-            
-            # Click logout
-            self.logout_link.click()
+            # Try dropdown menu pattern first (user menu -> logout link)
+            try:
+                # Ensure user menu is open
+                self.open_user_menu(timeout=timeout)
+                
+                # Wait for logout link to be visible
+                self.logout_link.wait_for(state="visible", timeout=timeout)
+                
+                allure.attach(
+                    "Clicking logout link in dropdown menu",
+                    name="Logout Action",
+                    attachment_type=allure.attachment_type.TEXT
+                )
+                
+                # Click logout
+                self.logout_link.click()
+                
+            except Exception as dropdown_error:
+                # Fallback: Try direct logout button (no dropdown menu)
+                allure.attach(
+                    f"Dropdown menu pattern failed: {str(dropdown_error)}\nTrying direct logout button",
+                    name="Logout Pattern Fallback",
+                    attachment_type=allure.attachment_type.TEXT
+                )
+                
+                # Try to find a direct logout button by test-id or aria-label
+                logout_button = self.page.get_by_test_id("logout-button").or_(
+                    self.page.get_by_role("button", name="Log Out")
+                ).or_(
+                    self.page.get_by_role("button", name="Logout")
+                )
+                
+                # Wait for and click the direct logout button
+                logout_button.wait_for(state="visible", timeout=timeout)
+                logout_button.click()
+                
+                allure.attach(
+                    "Clicked direct logout button",
+                    name="Logout Action",
+                    attachment_type=allure.attachment_type.TEXT
+                )
             
             # Wait for logout to complete (page navigation)
             self.wait_for_load()

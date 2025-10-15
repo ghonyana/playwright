@@ -116,7 +116,7 @@ class UsersAPIClient(BaseAPIClient):
         deactivate_user: Deactivate user account
     """
     
-    @allure.step("Create user with email={request.email}")
+    @allure.step("Create user via API")
     def create_user(self, request: CreateUserRequest) -> UserResponse:
         """
         Create new user account with validation.
@@ -218,7 +218,7 @@ class UsersAPIClient(BaseAPIClient):
         users (e.g., by unique role or email pattern).
         
         Args:
-            role: Optional role filter (e.g., "admin", "user", "editor")
+            role: Optional role filter (e.g., "admin", "customer", "moderator")
             status: Optional status filter (e.g., "active", "inactive", "suspended")
             page: Page number (1-indexed, default: 1)
             page_size: Users per page (1-100, default: 20)

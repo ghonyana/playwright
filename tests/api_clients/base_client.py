@@ -302,7 +302,7 @@ class BaseAPIClient:
         Example:
             updated_user = client.put(
                 "/users/123",
-                request_model=UpdateUserRequest(email="new@example.com", role="editor"),
+                request_model=UpdateUserRequest(email="new@example.com", role="moderator"),
                 response_model=UserResponse
             )
         """

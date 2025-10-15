@@ -84,17 +84,13 @@ class PayloadService:
     payload_templates: Dict[str, Dict[str, Any]] = {
         "create_user": {
             "email": "${email}",
-            "first_name": "${first_name}",
-            "last_name": "${last_name}",
+            "name": "${name}",
             "role": "${role}",
             "password": "${password}",
-            "is_active": True,
-            "created_at": "${created_at}",
-            "profile": {
-                "bio": "${bio}",
-                "phone": "${phone}",
-                "timezone": "UTC"
-            }
+            "age": "${age}",
+            "department": "${department}",
+            "phone": "${phone}",
+            "is_active": True
         },
         "update_user": {
             "first_name": "${first_name}",
@@ -432,8 +428,14 @@ class PayloadService:
             elif "last_name" in placeholder.lower():
                 defaults[placeholder] = self.fake.last_name()
             elif "name" in placeholder.lower() and "user" in placeholder.lower():
-                defaults[placeholder] = self.fake.name()
-            elif "project_name" in placeholder.lower() or placeholder == "name":
+                # Generate name without title prefix (no "Mr.", "Mrs.", etc.)
+                # to comply with name validation that only allows letters, spaces, hyphens, apostrophes
+                defaults[placeholder] = f"{self.fake.first_name()} {self.fake.last_name()}"
+            elif placeholder == "name":
+                # For user name field, generate full name without title prefix
+                # Name validation requires: letters, spaces, hyphens, and apostrophes only
+                defaults[placeholder] = f"{self.fake.first_name()} {self.fake.last_name()}"
+            elif "project_name" in placeholder.lower():
                 defaults[placeholder] = self.fake.company()
             elif "task_title" in placeholder.lower() or "title" in placeholder.lower():
                 defaults[placeholder] = self.fake.catch_phrase()
@@ -444,7 +446,11 @@ class PayloadService:
             elif "invitation_message" in placeholder.lower() or "message" in placeholder.lower():
                 defaults[placeholder] = self.fake.sentence()
             elif "phone" in placeholder.lower():
-                defaults[placeholder] = self.fake.phone_number()
+                # Generate E.164 format phone number: +[country code][subscriber number]
+                # Example: +12125551234
+                country_code = self.fake.random_element(elements=("1", "44", "61", "81"))
+                subscriber = self.fake.numerify(text="##########")  # 10 digits
+                defaults[placeholder] = f"+{country_code}{subscriber}"
             elif "password" in placeholder.lower():
                 defaults[placeholder] = self.fake.password(
                     length=12,
@@ -454,8 +460,10 @@ class PayloadService:
                     lower_case=True
                 )
             elif "role" in placeholder.lower():
+                # Use roles supported by sample_app: customer, admin, moderator
+                # These align with the application's role validation requirements
                 defaults[placeholder] = self.fake.random_element(
-                    elements=("admin", "editor", "viewer")
+                    elements=("admin", "customer", "moderator")
                 )
             elif "status" in placeholder.lower():
                 defaults[placeholder] = self.fake.random_element(
@@ -484,6 +492,14 @@ class PayloadService:
                 defaults[placeholder] = str(uuid.uuid4())
             elif "client_id" in placeholder.lower():
                 defaults[placeholder] = f"client_{uuid.uuid4()}"
+            elif placeholder == "age":
+                # Generate realistic age between 18 and 65
+                defaults[placeholder] = self.fake.random_int(min=18, max=65)
+            elif "department" in placeholder.lower():
+                # Generate realistic department name
+                defaults[placeholder] = self.fake.random_element(
+                    elements=("Engineering", "Sales", "Marketing", "Support", "Operations", "Finance")
+                )
             else:
                 # Generic fallback for unknown parameter types
                 defaults[placeholder] = self.fake.word()

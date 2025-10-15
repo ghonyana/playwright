@@ -439,6 +439,51 @@ class DashboardPage(BasePage):
             )
             raise
     
+    def get_dashboard_url(self) -> str:
+        """
+        Get the complete URL for the dashboard page.
+        
+        Returns:
+            str: Full dashboard URL combining base_url and DASHBOARD_PATH
+        
+        Example:
+            >>> dashboard_page.get_dashboard_url()
+            'http://localhost:3000/dashboard'
+        """
+        return f"{self.base_url}{DASHBOARD_PATH}"
+    
+    def get_section_url(self, section: str) -> str:
+        """
+        Get the complete URL for a specific dashboard section.
+        
+        Args:
+            section: Section identifier (e.g., "users", "settings", "reports")
+        
+        Returns:
+            str: Full section URL combining base_url, DASHBOARD_PATH, and section
+        
+        Example:
+            >>> dashboard_page.get_section_url("users")
+            'http://localhost:3000/dashboard/users'
+        """
+        return f"{self.base_url}{DASHBOARD_PATH}/{section}"
+    
+    def get_page_heading(self) -> Locator:
+        """
+        Get the main heading element on the current page.
+        
+        This method returns the first h1 heading element found on the page,
+        which typically contains the page title (e.g., "Dashboard", "Users", "Settings").
+        
+        Returns:
+            Locator: Playwright locator for the main page heading
+        
+        Example:
+            >>> heading = dashboard_page.get_page_heading()
+            >>> expect(heading).to_contain_text("Dashboard")
+        """
+        return self.page.locator("h1").first
+    
     @allure.step("Verify dashboard page is loaded")
     def verify_dashboard_loaded(self, timeout: Optional[int] = 5000) -> None:
         """

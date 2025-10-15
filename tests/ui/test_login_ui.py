@@ -148,7 +148,7 @@ def test_login_with_empty_fields(login_page):
     login_page.navigate_to_login()
     
     # Click login button without entering credentials
-    login_page.click_login_button()
+    login_page.login_button.click()
     
     # Verify browser-level validation or error messages
     # This verifies that the form has proper validation in place

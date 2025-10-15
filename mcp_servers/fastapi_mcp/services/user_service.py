@@ -361,11 +361,12 @@ class UserService:
             full_name = f"{first_name} {last_name}" if first_name and last_name else (first_name or last_name or "Test User")
             
             # Map MCP roles to sample app roles
-            # MCP: admin, editor, viewer -> Sample App: admin, moderator, customer
+            # MCP: admin, customer, moderator -> Sample App: admin, customer, moderator
+            # Direct 1:1 mapping since MCP roles now match sample app roles
             role_mapping = {
                 "admin": "admin",
-                "editor": "moderator",
-                "viewer": "customer"
+                "customer": "customer",
+                "moderator": "moderator"
             }
             app_role = role_mapping.get(role.value.lower(), "customer")
             

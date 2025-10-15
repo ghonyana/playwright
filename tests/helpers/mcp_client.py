@@ -167,11 +167,26 @@ class MCPClient:
             ...     attributes={"age": 30, "country": "US"}
             ... )
         """
+        # Build payload with proper field names expected by MCP server
         payload = {
-            "role": role,
-            "email": email,
-            "attributes": attributes or {}
+            "role": role
         }
+        
+        if email:
+            payload["email"] = email
+        
+        # Extract first_name and last_name from attributes if provided
+        if attributes:
+            if "first_name" in attributes:
+                payload["first_name"] = attributes["first_name"]
+            if "last_name" in attributes:
+                payload["last_name"] = attributes["last_name"]
+            
+            # Any other attributes go into custom_attributes
+            custom_attrs = {k: v for k, v in attributes.items() 
+                          if k not in ("first_name", "last_name")}
+            if custom_attrs:
+                payload["custom_attributes"] = custom_attrs
         
         try:
             response = self.client.post("/tools/seed_user", json=payload)

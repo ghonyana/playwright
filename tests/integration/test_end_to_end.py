@@ -110,12 +110,12 @@ def test_complete_user_registration_login_profile_flow(
     # Step 1: Create test user via MCP (deterministic data)
     with allure.step("Create test user via MCP server"):
         user_data = mcp_client.seed_user(
-            role="customer",
+            role="viewer",
             attributes={"first_name": "Integration", "last_name": "Test"}
         )
         test_email = user_data["email"]
         test_password = user_data["password"]
-        user_id = user_data["id"]
+        user_id = user_data["user_id"]
         
         allure.attach(
             f"Created user: {test_email}\nUser ID: {user_id}\nRole: customer",
@@ -163,8 +163,9 @@ def test_complete_user_registration_login_profile_flow(
     
     # Step 4: Verify profile changes via API (cross-layer validation)
     with allure.step("Verify profile changes persisted via API"):
-        # Use auth token from MCP-created user
-        users_api.set_auth_token(user_data["auth_token"])
+        # Login via API to get auth token
+        login_response = auth_api.login(email=test_email, password=test_password, remember_me=False)
+        users_api.set_auth_token(login_response.access_token)
         
         # Fetch user via API
         api_user = users_api.get_user(user_id)
@@ -205,6 +206,7 @@ def test_complete_user_registration_login_profile_flow(
 def test_api_created_user_can_login_via_ui(
     page: Page,
     mcp_client: MCPClient,
+    auth_api: AuthAPIClient,
     users_api: UsersAPIClient
 ) -> None:
     """
@@ -229,7 +231,9 @@ def test_api_created_user_can_login_via_ui(
     # Step 1: Admin authentication
     with allure.step("Authenticate as admin"):
         admin_user = mcp_client.seed_user(role="admin")
-        users_api.set_auth_token(admin_user["auth_token"])
+        # Login via API to get auth token
+        admin_login = auth_api.login(email=admin_user["email"], password=admin_user["password"], remember_me=False)
+        users_api.set_auth_token(admin_login.access_token)
         
         allure.attach(
             f"Admin user: {admin_user['email']}",
@@ -289,6 +293,7 @@ def test_api_created_user_can_login_via_ui(
 def test_ui_changes_immediately_visible_via_api(
     page: Page,
     mcp_client: MCPClient,
+    auth_api: AuthAPIClient,
     users_api: UsersAPIClient
 ) -> None:
     """
@@ -315,8 +320,10 @@ def test_ui_changes_immediately_visible_via_api(
     
     # Setup: Create and login user
     with allure.step("Setup: Create test user and login via UI"):
-        user_data = mcp_client.seed_user(role="customer")
-        users_api.set_auth_token(user_data["auth_token"])
+        user_data = mcp_client.seed_user(role="viewer")
+        # Login via API to get auth token for API calls
+        login_response = auth_api.login(email=user_data["email"], password=user_data["password"], remember_me=False)
+        users_api.set_auth_token(login_response.access_token)
         
         login_page = LoginPage(page)
         login_page.navigate_to_login()
@@ -330,7 +337,7 @@ def test_ui_changes_immediately_visible_via_api(
     
     # Baseline: Verify current profile via API
     with allure.step("Fetch baseline profile via API"):
-        baseline_profile = users_api.get_user(user_data["id"])
+        baseline_profile = users_api.get_user(user_data["user_id"])
         original_name = baseline_profile.name
         baseline_updated_at = baseline_profile.updated_at
         
@@ -367,7 +374,7 @@ def test_ui_changes_immediately_visible_via_api(
     
     # Verification: API immediately reflects UI changes
     with allure.step("Verify API reflects UI changes immediately"):
-        updated_profile = users_api.get_user(user_data["id"])
+        updated_profile = users_api.get_user(user_data["user_id"])
         
         # Assert name was updated
         expected_full_name = f"{updated_first_name} {updated_last_name}"
@@ -422,7 +429,7 @@ def test_api_validation_errors_displayed_in_ui(
     
     # Setup: Create first user and login
     with allure.step("Setup: Create primary test user and login"):
-        user_data = mcp_client.seed_user(role="customer")
+        user_data = mcp_client.seed_user(role="viewer")
         
         login_page = LoginPage(page)
         login_page.navigate_to_login()
@@ -436,7 +443,7 @@ def test_api_validation_errors_displayed_in_ui(
     
     # Setup: Create second user to cause email conflict
     with allure.step("Create second user with different email"):
-        existing_user = mcp_client.seed_user(role="customer")
+        existing_user = mcp_client.seed_user(role="viewer")
         existing_email = existing_user["email"]
         
         allure.attach(
@@ -510,11 +517,11 @@ def test_multiple_users_parallel_sessions(
     # Step 1: Create two isolated users
     with allure.step("Create two isolated test users"):
         user_a = mcp_client.seed_user(
-            role="customer",
+            role="viewer",
             attributes={"first_name": "User", "last_name": "Alpha"}
         )
         user_b = mcp_client.seed_user(
-            role="customer",
+            role="viewer",
             attributes={"first_name": "User", "last_name": "Beta"}
         )
         
@@ -628,7 +635,7 @@ def test_authentication_token_workflow(
         )
         test_email = user_data["email"]
         test_password = user_data["password"]
-        user_id = user_data["id"]
+        user_id = user_data["user_id"]
         
         allure.attach(
             f"Test user: {test_email}\nRole: editor",
@@ -672,8 +679,9 @@ def test_authentication_token_workflow(
             f"User ID mismatch: expected {user_id}, got {user_profile.id}"
         assert user_profile.email == test_email, \
             f"Email mismatch: expected {test_email}, got {user_profile.email}"
-        assert user_profile.role.value == "editor", \
-            f"Role mismatch: expected editor, got {user_profile.role.value}"
+        # Note: MCP server maps editor -> moderator in the sample app
+        assert user_profile.role.value == "moderator", \
+            f"Role mismatch: expected moderator (mapped from editor), got {user_profile.role.value}"
         
         allure.attach(
             f"API Profile Fetch Successful:\n"

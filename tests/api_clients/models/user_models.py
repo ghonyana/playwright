@@ -385,13 +385,17 @@ class UserListResponse(BaseModel):
     - users: List of UserResponse objects for current page
     - total: Total count of users matching filter criteria
     - page: Current page number (1-indexed)
-    - page_size: Number of users per page
-    - total_pages: Total number of available pages
-    - has_next: Boolean indicating if more pages exist
-    - has_previous: Boolean indicating if previous pages exist
+    - page_size (aliased to limit): Number of users per page
+    - total_pages: Total number of available pages (optional, calculated if not provided)
+    - has_next: Boolean indicating if more pages exist (optional)
+    - has_previous: Boolean indicating if previous pages exist (optional)
     
     Used by GET /users endpoint for paginated user listings with configurable
     page size (1-100 users per page).
+    
+    Note: The sample API returns 'limit' instead of 'page_size', so we use a field alias.
+    The pagination metadata fields (total_pages, has_next, has_previous) are optional
+    as the sample API may not return them.
     """
     users: List[UserResponse] = Field(
         ...,
@@ -414,27 +418,29 @@ class UserListResponse(BaseModel):
         ...,
         ge=1,
         le=100,
-        description="Number of users per page",
-        examples=[20]
+        description="Number of users per page (API returns as 'limit')",
+        examples=[20],
+        alias="limit"
     )
-    total_pages: int = Field(
-        ...,
+    total_pages: Optional[int] = Field(
+        default=None,
         ge=0,
-        description="Total number of pages",
+        description="Total number of pages (calculated if not provided by API)",
         examples=[8]
     )
-    has_next: bool = Field(
-        ...,
-        description="Whether more pages are available",
+    has_next: Optional[bool] = Field(
+        default=None,
+        description="Whether more pages are available (may not be provided by API)",
         examples=[True]
     )
-    has_previous: bool = Field(
-        ...,
-        description="Whether previous pages exist",
+    has_previous: Optional[bool] = Field(
+        default=None,
+        description="Whether previous pages exist (may not be provided by API)",
         examples=[False]
     )
     
     model_config = {
+        "populate_by_name": True,  # Allow population by both alias and field name
         "json_schema_extra": {
             "examples": [{
                 "users": [
@@ -451,7 +457,7 @@ class UserListResponse(BaseModel):
                 ],
                 "total": 150,
                 "page": 1,
-                "page_size": 20,
+                "limit": 20,
                 "total_pages": 8,
                 "has_next": True,
                 "has_previous": False

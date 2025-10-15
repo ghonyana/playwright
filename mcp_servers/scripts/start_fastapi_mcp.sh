@@ -379,8 +379,9 @@ fi
 success "Port $SERVER_PORT is available"
 
 # Determine reload setting (production mode disables reload)
+# Note: uvicorn only accepts --reload to enable; omit flag to disable
 if [ "$PRODUCTION_MODE" = true ]; then
-    RELOAD_FLAG="--no-reload"
+    RELOAD_FLAG=""
     RELOAD_STATUS="disabled (production mode)"
 else
     # Check RELOAD environment variable, default to enabled for development
@@ -388,7 +389,7 @@ else
         RELOAD_FLAG="--reload"
         RELOAD_STATUS="enabled (development mode)"
     else
-        RELOAD_FLAG="--no-reload"
+        RELOAD_FLAG=""
         RELOAD_STATUS="disabled (via RELOAD env var)"
     fi
 fi

@@ -276,6 +276,43 @@ def create_app():
         
         return render_template('user_profile_page.html', user=user_data)
     
+    @app.route('/account-settings')
+    def account_settings():
+        """
+        GET /account-settings - Display account settings page (requires authentication).
+        
+        Shows account configuration options for testing settings interactions.
+        
+        Returns:
+            Rendered account_settings.html template if authenticated
+            Redirect to login if not authenticated
+        """
+        # Require authentication
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        # Import users data for current user information
+        from sample_app.api.routes import _users, _data_lock
+        
+        with _data_lock:
+            user = _users.get(session['user_id'])
+            
+            if not user:
+                # User deleted or session stale
+                session.clear()
+                return redirect(url_for('login'))
+            
+            # Remove sensitive data
+            user_data = {
+                'id': user['id'],
+                'email': user['email'],
+                'name': user['name'],
+                'role': user['role'],
+                'created_at': user.get('created_at', 'N/A')
+            }
+        
+        return render_template('account_settings.html', user=user_data)
+    
     @app.route('/logout', methods=['GET', 'POST'])
     def logout():
         """
@@ -289,6 +326,184 @@ def create_app():
         """
         session.clear()
         return redirect(url_for('login'))
+    
+    @app.route('/users')
+    def users():
+        """
+        GET /users - Display users management page (requires authentication).
+        
+        Shows list of users for testing navigation and data display scenarios.
+        
+        Returns:
+            Rendered users.html template if authenticated
+            Redirect to login if not authenticated
+        """
+        # Require authentication
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        # Import users data
+        from sample_app.api.routes import _users, _data_lock
+        
+        with _data_lock:
+            users_list = list(_users.values())
+        
+        user_data = {
+            'id': session.get('user_id'),
+            'email': session.get('user_email'),
+            'name': session.get('user_name'),
+            'role': session.get('user_role')
+        }
+        
+        return render_template('users.html', user=user_data, users=users_list)
+    
+    @app.route('/users/<user_id>')
+    def user_profile(user_id):
+        """
+        GET /users/<user_id> - Display specific user profile page (requires authentication).
+        
+        Shows detailed information for a specific user for testing navigation
+        and breadcrumb functionality.
+        
+        Args:
+            user_id: ID of the user to display
+        
+        Returns:
+            Rendered user_profile_detail.html template if authenticated
+            Redirect to login if not authenticated
+        """
+        # Require authentication
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        # Import users data
+        from sample_app.api.routes import _users, _data_lock
+        
+        with _data_lock:
+            target_user = _users.get(user_id)
+        
+        if not target_user:
+            # User not found, redirect to users list
+            return redirect(url_for('users'))
+        
+        # Current logged-in user data for header
+        current_user_data = {
+            'id': session.get('user_id'),
+            'email': session.get('user_email'),
+            'name': session.get('user_name'),
+            'role': session.get('user_role')
+        }
+        
+        # Target user data (remove password)
+        profile_user_data = {
+            'id': target_user['id'],
+            'email': target_user['email'],
+            'name': target_user['name'],
+            'role': target_user['role'],
+            'created_at': target_user.get('created_at', 'N/A')
+        }
+        
+        return render_template('user_profile_detail.html', 
+                             user=current_user_data, 
+                             profile_user=profile_user_data)
+    
+    @app.route('/users/<user_id>/edit')
+    def edit_user_profile(user_id):
+        """
+        GET /users/<user_id>/edit - Display user profile edit page (requires authentication).
+        
+        Shows editable user profile form for testing navigation, breadcrumbs,
+        and form interactions.
+        
+        Args:
+            user_id: ID of the user to edit
+        
+        Returns:
+            Rendered edit_user_profile.html template if authenticated
+            Redirect to login if not authenticated
+        """
+        # Require authentication
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        # Import users data
+        from sample_app.api.routes import _users, _data_lock
+        
+        with _data_lock:
+            target_user = _users.get(user_id)
+        
+        if not target_user:
+            # User not found, redirect to users list
+            return redirect(url_for('users'))
+        
+        # Current logged-in user data for header
+        current_user_data = {
+            'id': session.get('user_id'),
+            'email': session.get('user_email'),
+            'name': session.get('user_name'),
+            'role': session.get('user_role')
+        }
+        
+        # Target user data (remove password)
+        profile_user_data = {
+            'id': target_user['id'],
+            'email': target_user['email'],
+            'name': target_user['name'],
+            'role': target_user['role'],
+            'created_at': target_user.get('created_at', 'N/A')
+        }
+        
+        return render_template('edit_user_profile.html', 
+                             user=current_user_data, 
+                             profile_user=profile_user_data)
+    
+    @app.route('/settings')
+    def settings():
+        """
+        GET /settings - Display settings page (requires authentication).
+        
+        Shows application settings for testing navigation scenarios.
+        
+        Returns:
+            Rendered settings.html template if authenticated
+            Redirect to login if not authenticated
+        """
+        # Require authentication
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        user_data = {
+            'id': session.get('user_id'),
+            'email': session.get('user_email'),
+            'name': session.get('user_name'),
+            'role': session.get('user_role')
+        }
+        
+        return render_template('settings.html', user=user_data)
+    
+    @app.route('/reports')
+    def reports():
+        """
+        GET /reports - Display reports page (requires authentication).
+        
+        Shows reports and analytics for testing navigation scenarios.
+        
+        Returns:
+            Rendered reports.html template if authenticated
+            Redirect to login if not authenticated
+        """
+        # Require authentication
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        user_data = {
+            'id': session.get('user_id'),
+            'email': session.get('user_email'),
+            'name': session.get('user_name'),
+            'role': session.get('user_role')
+        }
+        
+        return render_template('reports.html', user=user_data)
     
     # ========================================================================
     # HEALTH CHECK AND UTILITY ROUTES

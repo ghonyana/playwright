@@ -38,6 +38,7 @@ from tests.api_clients.models.user_models import (
     UserStatus,
 )
 from tests.helpers.mcp_client import MCPClient
+from tests.helpers.data_generators import generate_unique_email
 
 
 @allure.feature("User Management API")
@@ -166,9 +167,11 @@ def test_create_user_with_duplicate_email(users_api: UsersAPIClient, mcp_client:
     with an existing email should result in 409 Conflict response.
     """
     with allure.step("Create first user"):
+        # Generate unique email to avoid conflicts with previous test runs
+        unique_email = generate_unique_email(domain="example.com")
         user_payload = mcp_client.build_payload(
             template="create_user",
-            parameters={"email": "duplicate@example.com"}
+            parameters={"email": unique_email}
         )
         
         request = CreateUserRequest(**user_payload)
@@ -811,9 +814,11 @@ def test_search_users_by_email(users_api: UsersAPIClient, mcp_client: MCPClient)
     by partial email addresses.
     """
     with allure.step("Setup: Create user with distinctive email"):
+        # Generate unique email to avoid conflicts with previous test runs
+        unique_email = generate_unique_email(domain="example.com")
         user_payload = mcp_client.build_payload(
             template="create_user",
-            parameters={"email": "uniquesearch@example.com"}
+            parameters={"email": unique_email}
         )
         created_user = users_api.create_user(CreateUserRequest(**user_payload))
         
@@ -824,7 +829,9 @@ def test_search_users_by_email(users_api: UsersAPIClient, mcp_client: MCPClient)
         )
     
     with allure.step("Search by email substring"):
-        search_results = users_api.search_users(query="uniquesearch", limit=10)
+        # Search using the first part of the unique email (before @)
+        email_prefix = created_user.email.split('@')[0]
+        search_results = users_api.search_users(query=email_prefix, limit=10)
     
     with allure.step("Verify user found by email"):
         assert search_results.total >= 1, "Should find user by email"

@@ -191,7 +191,14 @@ class MCPClient:
         try:
             response = self.client.post("/tools/seed_user", json=payload)
             response.raise_for_status()
-            return response.json()  # type: ignore[no-any-return]
+            user_data = response.json()
+            
+            # Normalize response: MCP server returns "user_id" but tests expect "id"
+            # Transform to match the documented API contract
+            if "user_id" in user_data and "id" not in user_data:
+                user_data["id"] = user_data["user_id"]
+            
+            return user_data  # type: ignore[no-any-return]
         except httpx.HTTPStatusError as e:
             raise httpx.HTTPError(
                 f"Failed to seed user with role '{role}'. "

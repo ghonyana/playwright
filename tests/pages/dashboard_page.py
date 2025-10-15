@@ -460,20 +460,47 @@ class DashboardPage(BasePage):
             section: Section identifier (e.g., "users", "settings", "reports")
         
         Returns:
-            str: Full section URL combining base_url, DASHBOARD_PATH, and section
+            str: Full section URL combining base_url and section
         
         Example:
             >>> dashboard_page.get_section_url("users")
-            'http://localhost:3000/dashboard/users'
+            'http://localhost:3000/users'
         """
-        return f"{self.base_url}{DASHBOARD_PATH}/{section}"
+        return f"{self.base_url}/{section}"
+    
+    def get_profile_url(self) -> str:
+        """
+        Get the complete URL for the user profile page.
+        
+        Returns:
+            str: Full profile URL combining base_url and /profile path
+        
+        Example:
+            >>> dashboard_page.get_profile_url()
+            'http://localhost:3000/profile'
+        """
+        return f"{self.base_url}/profile"
+    
+    def get_account_settings_url(self) -> str:
+        """
+        Get the complete URL for the account settings page.
+        
+        Returns:
+            str: Full account settings URL combining base_url and /account-settings path
+        
+        Example:
+            >>> dashboard_page.get_account_settings_url()
+            'http://localhost:3000/account-settings'
+        """
+        return f"{self.base_url}/account-settings"
     
     def get_page_heading(self) -> Locator:
         """
         Get the main heading element on the current page.
         
-        This method returns the first h1 heading element found on the page,
-        which typically contains the page title (e.g., "Dashboard", "Users", "Settings").
+        This method returns the page title heading element using the stable
+        data-testid="page-title" selector, which contains the page-specific
+        title (e.g., "Dashboard", "Users", "Settings").
         
         Returns:
             Locator: Playwright locator for the main page heading
@@ -482,7 +509,7 @@ class DashboardPage(BasePage):
             >>> heading = dashboard_page.get_page_heading()
             >>> expect(heading).to_contain_text("Dashboard")
         """
-        return self.page.locator("h1").first
+        return self.page.get_by_test_id("page-title")
     
     @allure.step("Verify dashboard page is loaded")
     def verify_dashboard_loaded(self, timeout: Optional[int] = 5000) -> None:
@@ -687,6 +714,88 @@ class DashboardPage(BasePage):
             )
             raise
     
+    @allure.step("Get user menu dropdown element")
+    def get_user_menu_dropdown(self) -> Locator:
+        """
+        Get the user menu dropdown element.
+        
+        Returns the dropdown menu locator that contains all menu items.
+        This element is initially hidden and becomes visible after clicking
+        the user menu button.
+        
+        Returns:
+            Locator: The user menu dropdown element
+        
+        Example:
+            ```python
+            dropdown = dashboard_page.get_user_menu_dropdown()
+            expect(dropdown).to_be_visible()
+            ```
+        """
+        return self.page.get_by_test_id("user-menu-dropdown")
+    
+    @allure.step("Get all user menu items")
+    def get_user_menu_items(self) -> list:
+        """
+        Get all menu items from the user menu dropdown.
+        
+        Returns a list of all clickable menu items within the dropdown.
+        This is useful for verifying that all expected menu options are present.
+        
+        Returns:
+            list: List of Locator objects for each menu item
+        
+        Example:
+            ```python
+            items = dashboard_page.get_user_menu_items()
+            item_texts = [item.inner_text() for item in items]
+            assert "Profile" in item_texts
+            ```
+        """
+        dropdown = self.get_user_menu_dropdown()
+        menu_items = dropdown.get_by_role("menuitem").all()
+        return menu_items
+    
+    @allure.step("Click user menu item: {item_name}")
+    def click_user_menu_item(self, item_name: str, timeout: Optional[int] = 5000) -> None:
+        """
+        Click a specific item in the user menu dropdown.
+        
+        This method finds a menu item by its visible text and clicks it.
+        The menu should be opened before calling this method.
+        
+        Args:
+            item_name (str): The visible text of the menu item to click
+            timeout (Optional[int]): Maximum wait time in milliseconds
+        
+        Raises:
+            TimeoutError: If the menu item is not found or not clickable
+        
+        Example:
+            ```python
+            dashboard_page.open_user_menu()
+            dashboard_page.click_user_menu_item("Profile")
+            ```
+        """
+        try:
+            dropdown = self.get_user_menu_dropdown()
+            # Find the menu item by its text content
+            menu_item = dropdown.get_by_role("menuitem").filter(has_text=item_name)
+            menu_item.click(timeout=timeout)
+            
+            allure.attach(
+                f"Clicked menu item: {item_name}",
+                name="Menu Item Click",
+                attachment_type=allure.attachment_type.TEXT
+            )
+        except Exception as e:
+            allure.attach(
+                f"Failed to click menu item '{item_name}': {str(e)}",
+                name="Menu Item Click Error",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            raise
+    
     @allure.step("Logout from dashboard")
     def logout(self, timeout: Optional[int] = 5000) -> None:
         """
@@ -840,6 +949,214 @@ class DashboardPage(BasePage):
             allure.attach(
                 f"Failed to navigate to section '{section_name}' from dashboard: {str(e)}",
                 name="Section Navigation Error",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            raise
+    
+    # ==================================================================================
+    # BREADCRUMB NAVIGATION METHODS
+    # ==================================================================================
+    
+    @allure.step("Navigate to user profile: {user_id}")
+    def navigate_to_user_profile(self, user_id: str, timeout: Optional[int] = 5000) -> None:
+        """
+        Navigate to a specific user's profile page.
+        
+        This method navigates to the detailed profile page for a specific user,
+        typically from the users list page. It constructs the URL based on the
+        user ID and waits for the page to load.
+        
+        Args:
+            user_id (str): ID of the user whose profile to view
+            timeout (Optional[int]): Maximum wait time in milliseconds for navigation
+                                     Defaults to 5000ms (5 seconds)
+        
+        Raises:
+            TimeoutError: If navigation times out
+        
+        Example:
+            ```python
+            # Navigate to specific user profile
+            dashboard_page.navigate_to_section("users")
+            dashboard_page.navigate_to_user_profile("test-user-123")
+            
+            # Verify profile page loaded
+            expect(dashboard_page.get_page_heading()).to_contain_text("User Profile")
+            ```
+        """
+        try:
+            user_profile_url = self.get_user_profile_url(user_id)
+            self.page.goto(user_profile_url, wait_until="networkidle", timeout=timeout)
+            
+            # Wait for the profile page to be fully loaded
+            self.wait_for_load(state="load", timeout=timeout)
+            
+            # Wait for the page title to appear
+            self.page.get_by_test_id("page-title").wait_for(state="visible", timeout=timeout)
+            
+            allure.attach(
+                f"Successfully navigated to user profile: {user_profile_url}",
+                name="User Profile Navigation",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            
+            self.capture_screenshot(f"User Profile: {user_id}")
+            
+        except Exception as e:
+            self.capture_screenshot("Navigate to User Profile Failed")
+            allure.attach(
+                f"Failed to navigate to user profile {user_id}: {str(e)}",
+                name="User Profile Navigation Error",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            raise
+    
+    @allure.step("Navigate to edit profile page")
+    def navigate_to_edit_profile(self, timeout: Optional[int] = 5000) -> None:
+        """
+        Navigate to the edit profile page from the current user profile page.
+        
+        This method clicks the "Edit Profile" link on the user profile page
+        to navigate to the profile editing form. It assumes you're already
+        on a user profile page.
+        
+        Args:
+            timeout (Optional[int]): Maximum wait time in milliseconds for navigation
+                                     Defaults to 5000ms (5 seconds)
+        
+        Raises:
+            TimeoutError: If edit profile link not found or navigation times out
+        
+        Example:
+            ```python
+            # Navigate from profile to edit page
+            dashboard_page.navigate_to_user_profile("test-user-123")
+            dashboard_page.navigate_to_edit_profile()
+            
+            # Verify edit page loaded
+            expect(dashboard_page.get_page_heading()).to_contain_text("Edit Profile")
+            ```
+        """
+        try:
+            # Find and click the edit profile link
+            edit_link = self.page.get_by_test_id("edit-profile-link")
+            edit_link.wait_for(state="visible", timeout=timeout)
+            edit_link.click()
+            
+            # Wait for navigation to complete
+            self.wait_for_load(state="networkidle", timeout=timeout)
+            
+            allure.attach(
+                "Successfully navigated to edit profile page",
+                name="Edit Profile Navigation",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            
+            self.capture_screenshot("Edit Profile Page")
+            
+        except Exception as e:
+            self.capture_screenshot("Navigate to Edit Profile Failed")
+            allure.attach(
+                f"Failed to navigate to edit profile: {str(e)}",
+                name="Edit Profile Navigation Error",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            raise
+    
+    def get_user_profile_url(self, user_id: str) -> str:
+        """
+        Get the complete URL for a specific user's profile page.
+        
+        Args:
+            user_id (str): ID of the user
+        
+        Returns:
+            str: Full user profile URL
+        
+        Example:
+            >>> dashboard_page.get_user_profile_url("test-user-123")
+            'http://localhost:3000/users/test-user-123'
+        """
+        return f"{self.base_url}/users/{user_id}"
+    
+    def get_breadcrumb_items(self) -> list:
+        """
+        Get all breadcrumb navigation items on the current page.
+        
+        This method locates the breadcrumb navigation and returns all breadcrumb
+        items (both links and the current page indicator). The breadcrumbs show
+        the navigation hierarchy from Dashboard down to the current page.
+        
+        Returns:
+            list: List of Playwright Locator objects for each breadcrumb item
+        
+        Example:
+            ```python
+            # Get and verify breadcrumbs
+            breadcrumbs = dashboard_page.get_breadcrumb_items()
+            assert len(breadcrumbs) == 3
+            expect(breadcrumbs[0]).to_have_text("Dashboard")
+            expect(breadcrumbs[1]).to_have_text("Users")
+            expect(breadcrumbs[2]).to_have_text("User Profile")
+            ```
+        """
+        breadcrumb_container = self.page.get_by_test_id("breadcrumb")
+        breadcrumb_items = breadcrumb_container.locator("li.breadcrumb-item").all()
+        return breadcrumb_items
+    
+    @allure.step("Click breadcrumb: {breadcrumb_text}")
+    def click_breadcrumb(self, breadcrumb_text: str, timeout: Optional[int] = 5000) -> None:
+        """
+        Click on a specific breadcrumb link to navigate up the hierarchy.
+        
+        This method finds a breadcrumb by its text content and clicks it to
+        navigate to that level in the navigation hierarchy. It's used for
+        navigating "up" from deeply nested pages.
+        
+        Args:
+            breadcrumb_text (str): Text of the breadcrumb to click (e.g., "Users", "Dashboard")
+            timeout (Optional[int]): Maximum wait time in milliseconds for navigation
+                                     Defaults to 5000ms (5 seconds)
+        
+        Raises:
+            TimeoutError: If breadcrumb not found or navigation times out
+        
+        Example:
+            ```python
+            # Navigate up the breadcrumb trail
+            dashboard_page.click_breadcrumb("Users")
+            
+            # Verify navigation
+            expect(dashboard_page.page).to_have_url(dashboard_page.get_section_url("users"))
+            ```
+        """
+        try:
+            # Find the breadcrumb item containing the text
+            breadcrumb_container = self.page.get_by_test_id("breadcrumb")
+            breadcrumb_link = breadcrumb_container.get_by_role("link", name=breadcrumb_text, exact=False)
+            
+            # Wait for it to be visible
+            breadcrumb_link.wait_for(state="visible", timeout=timeout)
+            
+            # Click the breadcrumb
+            breadcrumb_link.click()
+            
+            # Wait for navigation to complete
+            self.wait_for_load(state="networkidle", timeout=timeout)
+            
+            allure.attach(
+                f"Successfully clicked breadcrumb: {breadcrumb_text}",
+                name="Breadcrumb Click",
+                attachment_type=allure.attachment_type.TEXT
+            )
+            
+            self.capture_screenshot(f"After Breadcrumb Click: {breadcrumb_text}")
+            
+        except Exception as e:
+            self.capture_screenshot("Breadcrumb Click Failed")
+            allure.attach(
+                f"Failed to click breadcrumb '{breadcrumb_text}': {str(e)}",
+                name="Breadcrumb Click Error",
                 attachment_type=allure.attachment_type.TEXT
             )
             raise

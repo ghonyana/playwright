@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="User Profile - Test Automation Sample Application">
+    <title>Profile - Sample Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Header Section -->
+    <header role="banner" class="site-header">
+        <div class="header-container">
+            <div class="branding">
+                <h1 class="site-title">Sample Application</h1>
+            </div>
+            
+            <div class="user-info-section">
+                <span class="welcome-message" data-testid="welcome-message" aria-label="Welcome message">
+                    Welcome, {{ user.name if user.name else 'User' }}
+                </span>
+                
+                <!-- User Menu Dropdown -->
+                <div class="user-menu-container" data-testid="user-menu">
+                    <button type="button" 
+                            role="button" 
+                            aria-label="User Menu" 
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            data-testid="user-menu-button"
+                            class="user-menu-button"
+                            onclick="toggleUserMenu()">
+                        <span class="user-name">{{ user.name if user.name else 'User' }}</span>
+                        <span class="dropdown-icon">▼</span>
+                    </button>
+                    
+                    <div class="user-menu-dropdown" 
+                         data-testid="user-menu-dropdown"
+                         role="menu"
+                         aria-label="User menu"
+                         style="display: none;">
+                        <a href="/profile" 
+                           role="menuitem" 
+                           data-testid="menu-item-profile"
+                           class="menu-item">
+                            Profile
+                        </a>
+                        <a href="/account-settings" 
+                           role="menuitem" 
+                           data-testid="menu-item-account-settings"
+                           class="menu-item">
+                            Account Settings
+                        </a>
+                        <a href="/preferences" 
+                           role="menuitem" 
+                           data-testid="menu-item-preferences"
+                           class="menu-item">
+                            Preferences
+                        </a>
+                        <a href="/help" 
+                           role="menuitem" 
+                           data-testid="menu-item-help"
+                           class="menu-item">
+                            Help
+                        </a>
+                        <hr class="menu-divider">
+                        <a href="/logout" 
+                           role="menuitem" 
+                           data-testid="menu-item-logout"
+                           class="menu-item">
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Menu -->
+    <nav role="navigation" 
+         aria-label="Main navigation" 
+         data-testid="main-navigation"
+         class="main-nav">
+        <ul class="nav-list" role="list">
+            <li class="nav-item">
+                <a href="/dashboard" 
+                   role="link" 
+                   data-testid="nav-dashboard"
+                   class="nav-link">
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/users" 
+                   role="link" 
+                   data-testid="nav-users"
+                   class="nav-link">
+                    Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/settings" 
+                   role="link" 
+                   data-testid="nav-settings"
+                   class="nav-link">
+                    Settings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/reports" 
+                   role="link" 
+                   data-testid="nav-reports"
+                   class="nav-link">
+                    Reports
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main role="main" class="main-content">
+        <div class="dashboard-container">
+            
+            <!-- Page Title -->
+            <div class="page-header">
+                <h1 class="page-title" data-testid="page-title">Profile</h1>
+                <p class="page-subtitle" data-testid="page-subtitle">
+                    View and manage your profile information
+                </p>
+            </div>
+
+            <!-- Profile Details Section -->
+            <section class="profile-section" aria-labelledby="profile-heading">
+                <h2 id="profile-heading" class="section-title">Account Information</h2>
+                
+                <!-- Success Message (shown after form submission) -->
+                <div class="alert alert-success" 
+                     role="alert" 
+                     data-testid="success-message"
+                     style="display: none;">
+                    <span class="alert-icon">✓</span>
+                    <span class="alert-text">Profile updated successfully!</span>
+                </div>
+                
+                <!-- Error Message (shown on validation errors) -->
+                <div class="alert alert-error" 
+                     role="alert" 
+                     data-testid="error-message"
+                     style="display: none;">
+                    <span class="alert-icon">✗</span>
+                    <span class="alert-text" data-testid="error-text"></span>
+                </div>
+                
+                <!-- Profile Edit Form -->
+                <form id="profile-form" class="profile-form" method="POST" action="/profile/update">
+                    <!-- Hidden User ID -->
+                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                    
+                    <!-- First Name Field -->
+                    <div class="form-group">
+                        <label for="first-name" class="form-label">First Name</label>
+                        <input type="text" 
+                               id="first-name" 
+                               name="first_name"
+                               class="form-input"
+                               aria-label="First Name"
+                               data-testid="first-name-input"
+                               value="{{ user.name.split()[0] if user.name else '' }}"
+                               required>
+                        <span class="field-error" data-testid="first-name-error" style="display: none;"></span>
+                    </div>
+                    
+                    <!-- Last Name Field -->
+                    <div class="form-group">
+                        <label for="last-name" class="form-label">Last Name</label>
+                        <input type="text" 
+                               id="last-name" 
+                               name="last_name"
+                               class="form-input"
+                               aria-label="Last Name"
+                               data-testid="last-name-input"
+                               value="{{ user.name.split()[1] if user.name and ' ' in user.name else '' }}"
+                               required>
+                        <span class="field-error" data-testid="last-name-error" style="display: none;"></span>
+                    </div>
+                    
+                    <!-- Email Field -->
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" 
+                               id="email" 
+                               name="email"
+                               class="form-input"
+                               aria-label="Email"
+                               data-testid="email-input"
+                               value="{{ user.email }}"
+                               required>
+                        <span class="field-error" data-testid="email-error" style="display: none;"></span>
+                    </div>
+                    
+                    <!-- Read-Only Fields -->
+                    <div class="detail-row">
+                        <label class="detail-label">User ID:</label>
+                        <span class="detail-value" data-testid="profile-user-id">{{ user.id }}</span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <label class="detail-label">Role:</label>
+                        <span class="detail-value" data-testid="profile-role">
+                            <span class="role-badge role-{{ user.role }}">
+                                {{ user.role|capitalize }}
+                            </span>
+                        </span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <label class="detail-label">Member Since:</label>
+                        <span class="detail-value" data-testid="profile-created">
+                            {{ user.created_at[:10] if user.created_at != 'N/A' else 'N/A' }}
+                        </span>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="profile-actions">
+                        <button type="submit" 
+                                class="btn btn-primary" 
+                                data-testid="save-button"
+                                aria-label="Save profile changes">
+                            Save Changes
+                        </button>
+                        <button type="button" 
+                                class="btn btn-secondary" 
+                                data-testid="cancel-button"
+                                aria-label="Cancel changes"
+                                onclick="cancelChanges()">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer role="contentinfo" class="site-footer">
+        <div class="footer-container">
+            <p class="footer-text">
+                &copy; 2024 Sample Application - Test Automation Framework Demo
+            </p>
+            <nav role="navigation" aria-label="Footer navigation" class="footer-nav">
+                <ul class="footer-links" role="list">
+                    <li><a href="/help" data-testid="footer-help">Help</a></li>
+                    <li><a href="/privacy" data-testid="footer-privacy">Privacy</a></li>
+                    <li><a href="/terms" data-testid="footer-terms">Terms</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+
+    <!-- Hidden elements for testing purposes -->
+    <div class="visually-hidden" aria-hidden="true">
+        <span data-testid="current-user-id">{{ user.id if user.id else '' }}</span>
+        <span data-testid="current-user-role">{{ user.role if user.role else '' }}</span>
+    </div>
+    
+    <!-- User Menu and Profile Form JavaScript -->
+    <script>
+        function toggleUserMenu() {
+            const dropdown = document.querySelector('[data-testid="user-menu-dropdown"]');
+            const button = document.querySelector('[data-testid="user-menu-button"]');
+            
+            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                dropdown.style.display = 'block';
+                button.setAttribute('aria-expanded', 'true');
+            } else {
+                dropdown.style.display = 'none';
+                button.setAttribute('aria-expanded', 'false');
+            }
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('[data-testid="user-menu"]');
+            const dropdown = document.querySelector('[data-testid="user-menu-dropdown"]');
+            
+            if (userMenu && !userMenu.contains(event.target)) {
+                dropdown.style.display = 'none';
+                const button = document.querySelector('[data-testid="user-menu-button"]');
+                if (button) {
+                    button.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+        
+        // Close dropdown when a menu item is clicked
+        document.querySelectorAll('[data-testid="user-menu-dropdown"] .menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const dropdown = document.querySelector('[data-testid="user-menu-dropdown"]');
+                dropdown.style.display = 'none';
+                const button = document.querySelector('[data-testid="user-menu-button"]');
+                if (button) {
+                    button.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+        
+        // Profile Form Handling
+        const profileForm = document.getElementById('profile-form');
+        if (profileForm) {
+            profileForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                
+                // Hide previous messages
+                hideMessage('success-message');
+                hideMessage('error-message');
+                
+                // Get form data
+                const formData = new FormData(profileForm);
+                const data = {
+                    user_id: formData.get('user_id'),
+                    first_name: formData.get('first_name'),
+                    last_name: formData.get('last_name'),
+                    email: formData.get('email')
+                };
+                
+                try {
+                    // Submit via API
+                    const response = await fetch('/api/users/' + data.user_id, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: data.first_name + ' ' + data.last_name,
+                            email: data.email
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        showMessage('success-message', 'Profile updated successfully!');
+                    } else {
+                        const error = await response.json();
+                        const errorText = error.message || error.error || 'Failed to update profile';
+                        showMessage('error-message', 'Error: ' + errorText);
+                    }
+                } catch (error) {
+                    showMessage('error-message', 'Network error: ' + error.message);
+                }
+            });
+        }
+        
+        function cancelChanges() {
+            window.location.href = '/dashboard';
+        }
+        
+        function showMessage(testId, text) {
+            const element = document.querySelector('[data-testid="' + testId + '"]');
+            if (element) {
+                element.style.display = 'block';
+                const textElement = element.querySelector('.alert-text, [data-testid="error-text"]');
+                if (textElement && text) {
+                    textElement.textContent = text;
+                }
+            }
+        }
+        
+        function hideMessage(testId) {
+            const element = document.querySelector('[data-testid="' + testId + '"]');
+            if (element) {
+                element.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

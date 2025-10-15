@@ -112,9 +112,21 @@ def test_breadcrumb_navigation(authenticated_dashboard):
     # Already authenticated and on dashboard
     dashboard_page = authenticated_dashboard
     
+    # Get MCP client from fixture for user seeding
+    from tests.helpers.mcp_client import get_mcp_client
+    mcp_client = get_mcp_client()
+    
+    # Seed a test user whose profile we can navigate to
+    # MCP will generate a unique email automatically to avoid conflicts
+    test_user = mcp_client.seed_user(
+        role="customer",
+        attributes={"name": "Breadcrumb Test User"}
+    )
+    test_user_id = test_user.get("id") or test_user.get("user_id") or test_user.get("userId")
+    
     # Navigate to deep nested page: Dashboard > Users > User Profile > Edit
     dashboard_page.navigate_to_section("users")
-    dashboard_page.navigate_to_user_profile(user_id="test-user-123")
+    dashboard_page.navigate_to_user_profile(user_id=test_user_id)
     dashboard_page.navigate_to_edit_profile()
     
     # Verify full breadcrumb trail is visible
@@ -127,7 +139,7 @@ def test_breadcrumb_navigation(authenticated_dashboard):
     
     # Click on "User Profile" breadcrumb (navigate up one level)
     dashboard_page.click_breadcrumb("User Profile")
-    expect(dashboard_page.page).to_have_url(dashboard_page.get_user_profile_url("test-user-123"))
+    expect(dashboard_page.page).to_have_url(dashboard_page.get_user_profile_url(test_user_id))
     expect(dashboard_page.get_page_heading()).to_contain_text("User Profile")
     
     # Verify breadcrumb updated (Edit Profile should be gone)
@@ -265,7 +277,7 @@ def test_page_transition_animations(authenticated_dashboard):
         expect(dashboard_page.page).to_have_url(expected_url)
         
         # Wait for page to be fully loaded (network idle)
-        dashboard_page.wait_for_page_load()
+        dashboard_page.wait_for_load()
         
         # Verify page heading is visible (content loaded)
         page_heading = dashboard_page.get_page_heading()

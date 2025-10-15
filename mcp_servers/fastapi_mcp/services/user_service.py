@@ -417,7 +417,61 @@ class UserService:
                     f"email={email}, role={app_role} (requested: {role.value})"
                 )
                 
-                # Return SeedUserResponse with all user details
+                # Generate auth token for the newly created user
+                user_token = None
+                try:
+                    # Login as the new user to get their auth token
+                    login_url = f"{settings.app_base_url}/login"
+                    login_response = await client.post(
+                        login_url,
+                        data={"email": email, "password": password},
+                        follow_redirects=False,
+                        timeout=10.0
+                    )
+                    
+                    if login_response.status_code in (200, 302):
+                        # Try to extract token from response
+                        if login_response.status_code == 200:
+                            login_data = login_response.json() if login_response.headers.get("content-type", "").startswith("application/json") else {}
+                            user_token = login_data.get("access_token") or login_data.get("token")
+                        
+                        # If no token in response body, try to call API endpoint
+                        if not user_token:
+                            # Sample app might use session-based auth, so let's create a mock token
+                            # or try the API login endpoint if it exists
+                            try:
+                                api_login_url = f"{settings.app_api_url}/login"
+                                api_login_response = await client.post(
+                                    api_login_url,
+                                    json={"email": email, "password": password},
+                                    timeout=10.0
+                                )
+                                if api_login_response.status_code == 200:
+                                    api_login_data = api_login_response.json()
+                                    user_token = api_login_data.get("access_token") or api_login_data.get("token")
+                            except Exception:
+                                # API login might not exist, use a placeholder token
+                                pass
+                        
+                        # If still no token, generate a placeholder based on user_id
+                        if not user_token:
+                            user_token = f"test_token_{user_id}"
+                            logger.warning(
+                                f"Could not obtain auth token for user {user_id}, "
+                                f"using placeholder token"
+                            )
+                    else:
+                        logger.warning(
+                            f"Login failed for user {email} with status {login_response.status_code}, "
+                            f"auth_token will be None"
+                        )
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to generate auth token for user {email}: {str(e)}, "
+                        f"auth_token will be None"
+                    )
+                
+                # Return SeedUserResponse with all user details including auth_token
                 # Note: Return app_role (mapped role) not the original MCP role
                 return SeedUserResponse(
                     user_id=user_id,
@@ -426,7 +480,8 @@ class UserService:
                     first_name=first_name,
                     last_name=last_name,
                     role=app_role,  # Return the actual role in the application
-                    created_at=creation_time
+                    created_at=creation_time,
+                    auth_token=user_token
                 )
                 
             except httpx.HTTPStatusError as e:

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Test Automation Framework</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Test Automation Framework</h1>
+        <nav role="navigation">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/users">Users</a>
+            <a href="/settings">Settings</a>
+            <a href="/reports">Reports</a>
+            <div data-testid="user-menu">
+                <button aria-label="User Menu">{{ user.name or user.email }}</button>
+                <div class="dropdown-menu">
+                    <a href="/profile">Profile</a>
+                    <a href="/logout" role="menuitem">Logout</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <main role="main">
+        <!-- Breadcrumb navigation -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb" data-testid="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="/dashboard" data-testid="breadcrumb-dashboard">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="/users" data-testid="breadcrumb-users">Users</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page" data-testid="breadcrumb-user-profile">
+                    User Profile
+                </li>
+            </ol>
+        </nav>
+        
+        <h2 data-testid="page-title">User Profile</h2>
+        
+        <div class="profile-container">
+            <div class="profile-header">
+                <h3>{{ profile_user.name }}</h3>
+                <p class="user-email">{{ profile_user.email }}</p>
+            </div>
+            
+            <div class="profile-details">
+                <div class="detail-row">
+                    <label>User ID:</label>
+                    <span>{{ profile_user.id }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <label>Email:</label>
+                    <span>{{ profile_user.email }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <label>Name:</label>
+                    <span>{{ profile_user.name }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <label>Role:</label>
+                    <span>{{ profile_user.role }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <label>Created At:</label>
+                    <span>{{ profile_user.created_at[:10] if profile_user.created_at != 'N/A' else 'N/A' }}</span>
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+                <a href="/users/{{ profile_user.id }}/edit" class="btn btn-primary" data-testid="edit-profile-link">
+                    Edit Profile
+                </a>
+                <a href="/users" class="btn btn-secondary">
+                    Back to Users
+                </a>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Test Automation Framework - Sample Application</p>
+    </footer>
+</body>
+</html>

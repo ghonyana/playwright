@@ -20,22 +20,58 @@
                     Welcome, {{ user.name if user.name else 'User' }}
                 </span>
                 
-                <a href="/profile" 
-                   role="link" 
-                   aria-label="View Profile" 
-                   data-testid="profile-link"
-                   class="profile-link">
-                    Profile
-                </a>
-                
-                <button type="button" 
-                        role="button" 
-                        aria-label="Log Out" 
-                        data-testid="logout-button"
-                        class="logout-button"
-                        onclick="window.location.href='/logout'">
-                    Log Out
-                </button>
+                <!-- User Menu Dropdown -->
+                <div class="user-menu-container" data-testid="user-menu">
+                    <button type="button" 
+                            role="button" 
+                            aria-label="User Menu" 
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            data-testid="user-menu-button"
+                            class="user-menu-button"
+                            onclick="toggleUserMenu()">
+                        <span class="user-name">{{ user.name if user.name else 'User' }}</span>
+                        <span class="dropdown-icon">▼</span>
+                    </button>
+                    
+                    <div class="user-menu-dropdown" 
+                         data-testid="user-menu-dropdown"
+                         role="menu"
+                         aria-label="User menu"
+                         style="display: none;">
+                        <a href="/profile" 
+                           role="menuitem" 
+                           data-testid="menu-item-profile"
+                           class="menu-item">
+                            Profile
+                        </a>
+                        <a href="/account-settings" 
+                           role="menuitem" 
+                           data-testid="menu-item-account-settings"
+                           class="menu-item">
+                            Account Settings
+                        </a>
+                        <a href="/preferences" 
+                           role="menuitem" 
+                           data-testid="menu-item-preferences"
+                           class="menu-item">
+                            Preferences
+                        </a>
+                        <a href="/help" 
+                           role="menuitem" 
+                           data-testid="menu-item-help"
+                           class="menu-item">
+                            Help
+                        </a>
+                        <hr class="menu-divider">
+                        <a href="/logout" 
+                           role="menuitem" 
+                           data-testid="menu-item-logout"
+                           class="menu-item">
+                            Logout
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -313,5 +349,47 @@
         <span data-testid="current-user-id">{{ user.id if user.id else '' }}</span>
         <span data-testid="current-user-role">{{ user.role if user.role else '' }}</span>
     </div>
+    
+    <!-- User Menu JavaScript -->
+    <script>
+        function toggleUserMenu() {
+            const dropdown = document.querySelector('[data-testid="user-menu-dropdown"]');
+            const button = document.querySelector('[data-testid="user-menu-button"]');
+            
+            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                dropdown.style.display = 'block';
+                button.setAttribute('aria-expanded', 'true');
+            } else {
+                dropdown.style.display = 'none';
+                button.setAttribute('aria-expanded', 'false');
+            }
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('[data-testid="user-menu"]');
+            const dropdown = document.querySelector('[data-testid="user-menu-dropdown"]');
+            
+            if (userMenu && !userMenu.contains(event.target)) {
+                dropdown.style.display = 'none';
+                const button = document.querySelector('[data-testid="user-menu-button"]');
+                if (button) {
+                    button.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+        
+        // Close dropdown when a menu item is clicked
+        document.querySelectorAll('[data-testid="user-menu-dropdown"] .menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const dropdown = document.querySelector('[data-testid="user-menu-dropdown"]');
+                dropdown.style.display = 'none';
+                const button = document.querySelector('[data-testid="user-menu-button"]');
+                if (button) {
+                    button.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

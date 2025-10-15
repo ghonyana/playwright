@@ -289,7 +289,7 @@ def create_user():
     with _data_lock:
         for user in _users.values():
             if user['email'].lower() == data['email'].lower():
-                return _error_response('Email already exists', 409, 'duplicate_email')
+                return _error_response('Email already in use', 409, 'duplicate_email')
         
         # Create new user with required and optional fields
         user_id = str(uuid4())
@@ -415,7 +415,7 @@ def update_user(user_id: str):
         if 'email' in data and data['email'].lower() != user['email'].lower():
             for other_user in _users.values():
                 if other_user['id'] != user_id and other_user['email'].lower() == data['email'].lower():
-                    return _error_response('Email already exists', 400, 'duplicate_email')
+                    return _error_response('Email already in use', 400, 'duplicate_email')
         
         # Update fields (partial update)
         updatable_fields = ['email', 'name', 'role', 'password', 'age', 'department', 'phone', 'is_active', 'status']

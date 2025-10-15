@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Settings - Test Automation Sample Application">
+    <title>Settings - Sample Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Header Section -->
+    <header role="banner" class="site-header">
+        <div class="header-container">
+            <div class="branding">
+                <h1 class="site-title">Sample Application</h1>
+            </div>
+            
+            <div class="user-info-section">
+                <span class="welcome-message" data-testid="welcome-message" aria-label="Welcome message">
+                    Welcome, {{ user.name if user.name else 'User' }}
+                </span>
+                
+                <a href="/profile" 
+                   role="link" 
+                   aria-label="View Profile" 
+                   data-testid="profile-link"
+                   class="profile-link">
+                    Profile
+                </a>
+                
+                <button type="button" 
+                        role="button" 
+                        aria-label="Log Out" 
+                        data-testid="logout-button"
+                        class="logout-button"
+                        onclick="window.location.href='/logout'">
+                    Log Out
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Menu -->
+    <nav role="navigation" 
+         aria-label="Main navigation" 
+         data-testid="main-navigation"
+         class="main-nav">
+        <ul class="nav-list" role="list">
+            <li class="nav-item">
+                <a href="/dashboard" 
+                   role="link" 
+                   data-testid="nav-dashboard"
+                   class="nav-link">
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/users" 
+                   role="link" 
+                   data-testid="nav-users"
+                   class="nav-link">
+                    Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/settings" 
+                   role="link" 
+                   aria-current="page"
+                   data-testid="nav-settings"
+                   class="nav-link active">
+                    Settings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/reports" 
+                   role="link" 
+                   data-testid="nav-reports"
+                   class="nav-link">
+                    Reports
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main role="main" class="main-content">
+        <div class="dashboard-container">
+            
+            <!-- Page Title -->
+            <div class="page-header">
+                <h1 class="page-title" data-testid="page-title">Settings</h1>
+                <p class="page-subtitle" data-testid="page-subtitle">
+                    Configure application settings and preferences
+                </p>
+            </div>
+
+            <!-- Settings Sections -->
+            <section class="settings-section" aria-labelledby="general-settings-heading">
+                <h2 id="general-settings-heading" class="section-title">General Settings</h2>
+                
+                <div class="settings-card" data-testid="general-settings">
+                    <div class="setting-item">
+                        <label class="setting-label" for="app-language">Application Language</label>
+                        <select id="app-language" class="setting-input" data-testid="language-select">
+                            <option value="en" selected>English</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label class="setting-label" for="timezone">Timezone</label>
+                        <select id="timezone" class="setting-input" data-testid="timezone-select">
+                            <option value="UTC" selected>UTC</option>
+                            <option value="America/New_York">Eastern Time</option>
+                            <option value="America/Los_Angeles">Pacific Time</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-section" aria-labelledby="notification-settings-heading">
+                <h2 id="notification-settings-heading" class="section-title">Notification Settings</h2>
+                
+                <div class="settings-card" data-testid="notification-settings">
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <input type="checkbox" 
+                                   class="setting-checkbox" 
+                                   data-testid="email-notifications-checkbox"
+                                   checked>
+                            Enable email notifications
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <input type="checkbox" 
+                                   class="setting-checkbox" 
+                                   data-testid="push-notifications-checkbox"
+                                   checked>
+                            Enable push notifications
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-section" aria-labelledby="security-settings-heading">
+                <h2 id="security-settings-heading" class="section-title">Security Settings</h2>
+                
+                <div class="settings-card" data-testid="security-settings">
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <input type="checkbox" 
+                                   class="setting-checkbox" 
+                                   data-testid="two-factor-checkbox">
+                            Enable two-factor authentication
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <button type="button"
+                                role="button"
+                                aria-label="Change Password"
+                                data-testid="change-password-button"
+                                class="action-button action-secondary">
+                            Change Password
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer role="contentinfo" class="site-footer">
+        <div class="footer-container">
+            <p class="footer-text">
+                &copy; 2024 Sample Application - Test Automation Framework Demo
+            </p>
+            <nav role="navigation" aria-label="Footer navigation" class="footer-nav">
+                <ul class="footer-links" role="list">
+                    <li><a href="/help" data-testid="footer-help">Help</a></li>
+                    <li><a href="/privacy" data-testid="footer-privacy">Privacy</a></li>
+                    <li><a href="/terms" data-testid="footer-terms">Terms</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+
+    <!-- Hidden elements for testing purposes -->
+    <div class="visually-hidden" aria-hidden="true">
+        <span data-testid="current-user-id">{{ user.id if user.id else '' }}</span>
+        <span data-testid="current-user-role">{{ user.role if user.role else '' }}</span>
+    </div>
+</body>
+</html>

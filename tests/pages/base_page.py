@@ -43,13 +43,15 @@ class BasePage:
     Base page class providing common functionality for all page objects.
     
     This class encapsulates the Playwright Page instance and provides utility methods
-    for navigation, waiting, screenshot capture, console error retrieval, and stable
-    element location strategies. All page objects should inherit from this class.
+    for navigation, waiting, screenshot capture, console error retrieval, network
+    failure tracking, and stable element location strategies. All page objects should
+    inherit from this class.
     
     Attributes:
         page (Page): Playwright Page instance for browser interactions
         base_url (str): Base URL of the application under test from BASE_URL env var
         _console_errors (List[str]): Collected console error messages
+        _failed_requests (List[str]): Collected failed network request URLs (status >= 400)
     
     Example Usage:
         ```python
@@ -103,6 +105,10 @@ class BasePage:
         # Initialize console error collection
         self._console_errors: List[str] = []
         self._setup_console_listener()
+        
+        # Initialize network request failure tracking
+        self._failed_requests: List[str] = []
+        self._setup_network_listener()
     
     def _setup_console_listener(self) -> None:
         """
@@ -117,6 +123,22 @@ class BasePage:
                 self._console_errors.append(f"[{msg.type}] {msg.text}")
         
         self.page.on("console", handle_console_message)
+    
+    def _setup_network_listener(self) -> None:
+        """
+        Set up listener for network requests to capture failures.
+        
+        This internal method registers event handlers for response events that
+        track failed HTTP requests (4xx, 5xx status codes) for debugging.
+        """
+        def handle_response(response: Any) -> None:
+            """Capture failed network requests."""
+            if response.status >= 400:
+                self._failed_requests.append(
+                    f"[{response.status}] {response.request.method} {response.url}"
+                )
+        
+        self.page.on("response", handle_response)
     
     @allure.step("Navigate to {path}")
     def navigate(self, path: str = "", timeout: Optional[int] = None) -> None:
@@ -265,6 +287,37 @@ class BasePage:
             )
         
         return self._console_errors.copy()
+    
+    def get_failed_network_requests(self) -> List[str]:
+        """
+        Retrieve all failed network requests captured during page lifecycle.
+        
+        This method returns HTTP requests that received error responses (4xx, 5xx)
+        since the page object was instantiated. Useful for debugging broken links,
+        missing resources, or API errors during test execution.
+        
+        Returns:
+            List[str]: List of failed requests in format "[status] METHOD url"
+        
+        Example:
+            ```python
+            page_obj.navigate("/dashboard")
+            page_obj.wait_for_load()
+            
+            # Check for failed requests
+            failed = page_obj.get_failed_network_requests()
+            assert len(failed) == 0, f"Failed requests detected: {failed}"
+            ```
+        """
+        if self._failed_requests:
+            # Attach failed requests to Allure report for visibility
+            allure.attach(
+                "\n".join(self._failed_requests),
+                name="Failed Network Requests",
+                attachment_type=allure.attachment_type.TEXT
+            )
+        
+        return self._failed_requests.copy()
     
     # Utility methods for stable locator strategies
     

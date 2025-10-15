@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Account Settings - Test Automation Sample Application">
+    <title>Account Settings - Sample Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Header Section -->
+    <header role="banner" class="site-header">
+        <div class="header-container">
+            <div class="branding">
+                <h1 class="site-title">Sample Application</h1>
+            </div>
+            
+            <div class="user-info-section">
+                <span class="welcome-message" data-testid="welcome-message" aria-label="Welcome message">
+                    Welcome, {{ user.name if user.name else 'User' }}
+                </span>
+                
+                <!-- User Menu Dropdown -->
+                <div class="user-menu-container" data-testid="user-menu">
+                    <button type="button" 
+                            role="button" 
+                            aria-label="User Menu" 
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            data-testid="user-menu-button"
+                            class="user-menu-button"
+                            onclick="toggleUserMenu()">
+                        <span class="user-name">{{ user.name if user.name else 'User' }}</span>
+                        <span class="dropdown-icon">▼</span>
+                    </button>
+                    
+                    <div class="user-menu-dropdown" 
+                         data-testid="user-menu-dropdown"
+                         role="menu"
+                         aria-label="User menu"
+                         style="display: none;">
+                        <a href="/profile" 
+                           role="menuitem" 
+                           data-testid="menu-item-profile"
+                           class="menu-item">
+                            Profile
+                        </a>
+                        <a href="/account-settings" 
+                           role="menuitem" 
+                           data-testid="menu-item-account-settings"
+                           class="menu-item">
+                            Account Settings
+                        </a>
+                        <a href="/preferences" 
+                           role="menuitem" 
+                           data-testid="menu-item-preferences"
+                           class="menu-item">
+                            Preferences
+                        </a>
+                        <a href="/help" 
+                           role="menuitem" 
+                           data-testid="menu-item-help"
+                           class="menu-item">
+                            Help
+                        </a>
+                        <hr class="menu-divider">
+                        <a href="/logout" 
+                           role="menuitem" 
+                           data-testid="menu-item-logout"
+                           class="menu-item">
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Menu -->
+    <nav role="navigation" 
+         aria-label="Main navigation" 
+         data-testid="main-navigation"
+         class="main-nav">
+        <ul class="nav-list" role="list">
+            <li class="nav-item">
+                <a href="/dashboard" 
+                   role="link" 
+                   data-testid="nav-dashboard"
+                   class="nav-link">
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/users" 
+                   role="link" 
+                   data-testid="nav-users"
+                   class="nav-link">
+                    Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/settings" 
+                   role="link" 
+                   data-testid="nav-settings"
+                   class="nav-link">
+                    Settings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/reports" 
+                   role="link" 
+                   data-testid="nav-reports"
+                   class="nav-link">
+                    Reports
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main role="main" class="main-content">
+        <div class="dashboard-container">
+            
+            <!-- Page Title -->
+            <div class="page-header">
+                <h1 class="page-title" data-testid="page-title">Account Settings</h1>
+                <p class="page-subtitle" data-testid="page-subtitle">
+                    Manage your account preferences and security settings
+                </p>
+            </div>
+
+            <!-- Security Settings Section -->
+            <section class="settings-section" aria-labelledby="security-heading">
+                <h2 id="security-heading" class="section-title">Security Settings</h2>
+                
+                <form class="settings-form" method="POST" action="/account-settings/update">
+                    <div class="form-group">
+                        <label for="current-password" class="form-label">Current Password:</label>
+                        <input type="password" 
+                               id="current-password" 
+                               name="current_password" 
+                               class="form-input"
+                               data-testid="current-password-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new-password" class="form-label">New Password:</label>
+                        <input type="password" 
+                               id="new-password" 
+                               name="new_password" 
+                               class="form-input"
+                               data-testid="new-password-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm-password" class="form-label">Confirm Password:</label>
+                        <input type="password" 
+                               id="confirm-password" 
+                               name="confirm_password" 
+                               class="form-input"
+                               data-testid="confirm-password-input">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" data-testid="update-password-button">
+                        Update Password
+                    </button>
+                </form>
+            </section>
+
+            <!-- Notification Settings Section -->
+            <section class="settings-section" aria-labelledby="notifications-heading">
+                <h2 id="notifications-heading" class="section-title">Notification Preferences</h2>
+                
+                <form class="settings-form" method="POST" action="/account-settings/notifications">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" 
+                                   name="email_notifications" 
+                                   value="true"
+                                   checked
+                                   data-testid="email-notifications-checkbox">
+                            Email Notifications
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" 
+                                   name="sms_notifications" 
+                                   value="true"
+                                   data-testid="sms-notifications-checkbox">
+                            SMS Notifications
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" 
+                                   name="push_notifications" 
+                                   value="true"
+                                   checked
+                                   data-testid="push-notifications-checkbox">
+                            Push Notifications
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" data-testid="save-notifications-button">
+                        Save Preferences
+                    </button>
+                </form>
+            </section>
+
+            <!-- Account Actions Section -->
+            <section class="settings-section danger-zone" aria-labelledby="danger-heading">
+                <h2 id="danger-heading" class="section-title text-danger">Danger Zone</h2>
+                
+                <div class="danger-actions">
+                    <p class="danger-warning">
+                        The following actions are permanent and cannot be undone.
+                    </p>
+                    
+                    <button type="button" 
+                            class="btn btn-danger" 
+                            data-testid="delete-account-button"
+                            onclick="alert('Account deletion feature coming soon')">
+                        Delete Account
+                    </button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer role="contentinfo" class="site-footer">
+        <div class="footer-container">
+            <p class="footer-text">
+                &copy; 2024 Sample Application - Test Automation Framework Demo
+            </p>
+            <nav role="navigation" aria-label="Footer navigation" class="footer-nav">
+                <ul class="footer-links" role="list">
+                    <li><a href="/help" data-testid="footer-help">Help</a></li>
+                    <li><a href="/privacy" data-testid="footer-privacy">Privacy</a></li>
+                    <li><a href="/terms" data-testid="footer-terms">Terms</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+
+    <!-- Hidden elements for testing purposes -->
+    <div class="visually-hidden" aria-hidden="true">
+        <span data-testid="current-user-id">{{ user.id if user.id else '' }}</span>
+        <span data-testid="current-user-role">{{ user.role if user.role else '' }}</span>
+    </div>
+    
+    <!-- User Menu JavaScript -->
+    <script>
+        function toggleUserMenu() {
+            const dropdown = document.querySelector('[data-testid="user-menu-dropdown"]');
+            const button = document.querySelector('[data-testid="user-menu-button"]');
+            
+            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                dropdown.style.display = 'block';
+                button.setAttribute('aria-expanded', 'true');
+            } else {
+                dropdown.style.display = 'none';
+                button.setAttribute('aria-expanded', 'false');
+            }
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('[data-testid="user-menu"]');
+            const dropdown = document.querySelector('[data-testid="user-menu-dropdown"]');
+            
+            if (userMenu && !userMenu.contains(event.target)) {
+                dropdown.style.display = 'none';
+                const button = document.querySelector('[data-testid="user-menu-button"]');
+                if (button) {
+                    button.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+        
+        // Close dropdown when a menu item is clicked
+        document.querySelectorAll('[data-testid="user-menu-dropdown"] .menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const dropdown = document.querySelector('[data-testid="user-menu-dropdown"]');
+                dropdown.style.display = 'none';
+                const button = document.querySelector('[data-testid="user-menu-button"]');
+                if (button) {
+                    button.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

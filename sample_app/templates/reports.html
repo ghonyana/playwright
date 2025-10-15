@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Reports - Test Automation Sample Application">
+    <title>Reports - Sample Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Header Section -->
+    <header role="banner" class="site-header">
+        <div class="header-container">
+            <div class="branding">
+                <h1 class="site-title">Sample Application</h1>
+            </div>
+            
+            <div class="user-info-section">
+                <span class="welcome-message" data-testid="welcome-message" aria-label="Welcome message">
+                    Welcome, {{ user.name if user.name else 'User' }}
+                </span>
+                
+                <a href="/profile" 
+                   role="link" 
+                   aria-label="View Profile" 
+                   data-testid="profile-link"
+                   class="profile-link">
+                    Profile
+                </a>
+                
+                <button type="button" 
+                        role="button" 
+                        aria-label="Log Out" 
+                        data-testid="logout-button"
+                        class="logout-button"
+                        onclick="window.location.href='/logout'">
+                    Log Out
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Menu -->
+    <nav role="navigation" 
+         aria-label="Main navigation" 
+         data-testid="main-navigation"
+         class="main-nav">
+        <ul class="nav-list" role="list">
+            <li class="nav-item">
+                <a href="/dashboard" 
+                   role="link" 
+                   data-testid="nav-dashboard"
+                   class="nav-link">
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/users" 
+                   role="link" 
+                   data-testid="nav-users"
+                   class="nav-link">
+                    Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/settings" 
+                   role="link" 
+                   data-testid="nav-settings"
+                   class="nav-link">
+                    Settings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/reports" 
+                   role="link" 
+                   aria-current="page"
+                   data-testid="nav-reports"
+                   class="nav-link active">
+                    Reports
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main role="main" class="main-content">
+        <div class="dashboard-container">
+            
+            <!-- Page Title -->
+            <div class="page-header">
+                <h1 class="page-title" data-testid="page-title">Reports</h1>
+                <p class="page-subtitle" data-testid="page-subtitle">
+                    View analytics and system reports
+                </p>
+            </div>
+
+            <!-- Reports Statistics Section -->
+            <section class="stats-section" aria-label="Report Statistics">
+                <h2 class="section-title visually-hidden">Statistics</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card" data-testid="stat-total-reports">
+                        <div class="stat-icon" aria-hidden="true">📊</div>
+                        <div class="stat-content">
+                            <h3 class="stat-label">Total Reports</h3>
+                            <p class="stat-value" data-testid="stat-total-reports-value">42</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" data-testid="stat-active-reports">
+                        <div class="stat-icon" aria-hidden="true">✅</div>
+                        <div class="stat-content">
+                            <h3 class="stat-label">Active Reports</h3>
+                            <p class="stat-value" data-testid="stat-active-reports-value">15</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" data-testid="stat-scheduled-reports">
+                        <div class="stat-icon" aria-hidden="true">⏰</div>
+                        <div class="stat-content">
+                            <h3 class="stat-label">Scheduled Reports</h3>
+                            <p class="stat-value" data-testid="stat-scheduled-reports-value">8</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" data-testid="stat-archived-reports">
+                        <div class="stat-icon" aria-hidden="true">📦</div>
+                        <div class="stat-content">
+                            <h3 class="stat-label">Archived Reports</h3>
+                            <p class="stat-value" data-testid="stat-archived-reports-value">19</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Available Reports Section -->
+            <section class="reports-section" aria-labelledby="reports-heading">
+                <h2 id="reports-heading" class="section-title">Available Reports</h2>
+                
+                <div class="reports-grid" data-testid="reports-list">
+                    <div class="report-card" data-testid="report-users">
+                        <h3 class="report-title">User Activity Report</h3>
+                        <p class="report-description">
+                            Detailed breakdown of user activity and engagement metrics
+                        </p>
+                        <button type="button"
+                                role="button"
+                                aria-label="Generate User Activity Report"
+                                data-testid="generate-user-report-button"
+                                class="action-button action-primary">
+                            Generate Report
+                        </button>
+                    </div>
+                    
+                    <div class="report-card" data-testid="report-system">
+                        <h3 class="report-title">System Performance Report</h3>
+                        <p class="report-description">
+                            System health metrics and performance indicators
+                        </p>
+                        <button type="button"
+                                role="button"
+                                aria-label="Generate System Performance Report"
+                                data-testid="generate-system-report-button"
+                                class="action-button action-primary">
+                            Generate Report
+                        </button>
+                    </div>
+                    
+                    <div class="report-card" data-testid="report-security">
+                        <h3 class="report-title">Security Audit Report</h3>
+                        <p class="report-description">
+                            Security events and audit trail summary
+                        </p>
+                        <button type="button"
+                                role="button"
+                                aria-label="Generate Security Audit Report"
+                                data-testid="generate-security-report-button"
+                                class="action-button action-primary">
+                            Generate Report
+                        </button>
+                    </div>
+                    
+                    <div class="report-card" data-testid="report-analytics">
+                        <h3 class="report-title">Analytics Report</h3>
+                        <p class="report-description">
+                            Comprehensive analytics and trends analysis
+                        </p>
+                        <button type="button"
+                                role="button"
+                                aria-label="Generate Analytics Report"
+                                data-testid="generate-analytics-report-button"
+                                class="action-button action-primary">
+                            Generate Report
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Reports Section -->
+            <section class="recent-reports-section" aria-labelledby="recent-reports-heading">
+                <h2 id="recent-reports-heading" class="section-title">Recent Reports</h2>
+                
+                <div class="reports-table-container" data-testid="recent-reports-table">
+                    <table class="reports-table" role="table">
+                        <thead>
+                            <tr role="row">
+                                <th role="columnheader">Report Name</th>
+                                <th role="columnheader">Generated</th>
+                                <th role="columnheader">Status</th>
+                                <th role="columnheader">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr role="row" data-testid="report-row-1">
+                                <td role="cell">Monthly User Activity</td>
+                                <td role="cell">2024-01-15</td>
+                                <td role="cell"><span class="status-badge status-complete">Complete</span></td>
+                                <td role="cell">
+                                    <button class="action-link" data-testid="download-report-1">Download</button>
+                                </td>
+                            </tr>
+                            <tr role="row" data-testid="report-row-2">
+                                <td role="cell">System Performance</td>
+                                <td role="cell">2024-01-14</td>
+                                <td role="cell"><span class="status-badge status-complete">Complete</span></td>
+                                <td role="cell">
+                                    <button class="action-link" data-testid="download-report-2">Download</button>
+                                </td>
+                            </tr>
+                            <tr role="row" data-testid="report-row-3">
+                                <td role="cell">Security Audit</td>
+                                <td role="cell">2024-01-13</td>
+                                <td role="cell"><span class="status-badge status-processing">Processing</span></td>
+                                <td role="cell">
+                                    <button class="action-link" data-testid="download-report-3" disabled>Download</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer role="contentinfo" class="site-footer">
+        <div class="footer-container">
+            <p class="footer-text">
+                &copy; 2024 Sample Application - Test Automation Framework Demo
+            </p>
+            <nav role="navigation" aria-label="Footer navigation" class="footer-nav">
+                <ul class="footer-links" role="list">
+                    <li><a href="/help" data-testid="footer-help">Help</a></li>
+                    <li><a href="/privacy" data-testid="footer-privacy">Privacy</a></li>
+                    <li><a href="/terms" data-testid="footer-terms">Terms</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+
+    <!-- Hidden elements for testing purposes -->
+    <div class="visually-hidden" aria-hidden="true">
+        <span data-testid="current-user-id">{{ user.id if user.id else '' }}</span>
+        <span data-testid="current-user-role">{{ user.role if user.role else '' }}</span>
+    </div>
+</body>
+</html>

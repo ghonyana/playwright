@@ -152,6 +152,10 @@ class SeedUserResponse(BaseModel):
         ...,
         description="ISO 8601 timestamp of user creation"
     )
+    auth_token: Optional[str] = Field(
+        None,
+        description="Authentication token (JWT) for API requests as this user"
+    )
 
 
 class BuildPayloadRequest(BaseModel):

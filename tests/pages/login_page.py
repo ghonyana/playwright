@@ -184,31 +184,36 @@ class LoginPage(BasePage):
     @property
     def password_input(self) -> Locator:
         """
-        Locate the password input field using accessible label.
+        Locate the password input field using test ID (stable, explicit).
         
-        Priority: get_by_label (semantic relationship between label and input)
-        Fallback: get_by_role('textbox', name='Password') for ARIA-labeled inputs
+        Priority: get_by_test_id (most explicit and stable selector)
+        Fallback 1: get_by_label with exact match
+        Fallback 2: get_by_role('textbox', name='Password') for ARIA-labeled inputs
         
         Returns:
             Locator: Playwright locator for password input element
         
         Expected HTML patterns:
-            <label for="password">Password</label>
-            <input id="password" type="password" name="password" />
+            <input type="password" data-testid="password-input" aria-label="Password" />
             
             OR
             
-            <input type="password" aria-label="Password" />
+            <label for="password">Password</label>
+            <input id="password" type="password" name="password" />
         
-        Note: Some implementations may use role="textbox" even for password fields
-        when ARIA attributes are explicitly set for accessibility.
+        Note: Using test-id as primary selector per user directive:
+        "prefer role/name/test-id" to avoid brittle selectors.
         """
         try:
-            # Prefer label association (most semantic)
-            return self.page.get_by_label("Password", exact=False)
+            # Prefer test-id (most stable and explicit)
+            return self.page.get_by_test_id("password-input")
         except Exception:
-            # Fallback to ARIA role with accessible name
-            return self.page.get_by_role("textbox", name="Password")
+            try:
+                # Fallback to exact label match
+                return self.page.get_by_label("Password", exact=True)
+            except Exception:
+                # Final fallback to ARIA role with accessible name
+                return self.page.get_by_role("textbox", name="Password")
     
     @property
     def login_button(self) -> Locator:

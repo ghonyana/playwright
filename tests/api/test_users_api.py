@@ -130,7 +130,7 @@ def test_create_user_with_optional_fields(users_api: UsersAPIClient, mcp_client:
         user_payload = mcp_client.build_payload(
             template="create_user",
             parameters={
-                "role": "user",
+                "role": "customer",
                 "age": 30,
                 "department": "Engineering",
                 "phone": "+12125551234"
@@ -264,7 +264,7 @@ def test_create_user_with_weak_password(users_api: UsersAPIClient, mcp_client: M
     
     with allure.step("Verify password validation error"):
         error_message = str(exc_info.value)
-        assert "Password" in error_message, "Error should mention password validation"
+        assert "password" in error_message.lower(), "Error should mention password validation"
         
         allure.attach(
             error_message,
@@ -843,10 +843,11 @@ def test_search_users_with_limit(users_api: UsersAPIClient, mcp_client: MCPClien
     and supporting paginated search results.
     """
     with allure.step("Setup: Create multiple users with similar names"):
-        for i in range(5):
+        name_suffixes = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon"]
+        for suffix in name_suffixes:
             user_payload = mcp_client.build_payload(
                 template="create_user",
-                parameters={"name": f"CommonName User{i}"}
+                parameters={"name": f"CommonName {suffix}"}
             )
             users_api.create_user(CreateUserRequest(**user_payload))
     

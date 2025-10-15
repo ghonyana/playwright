@@ -155,6 +155,11 @@ class PayloadService:
             "password": "${password}",
             "remember_me": False
         },
+        "invalid_login": {
+            "email": "${email}",
+            "password": "${invalid_password}",
+            "remember_me": False
+        },
         "refresh_token": {
             "refresh_token": "${refresh_token}",
             "client_id": "${client_id}"

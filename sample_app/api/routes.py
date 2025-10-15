@@ -169,11 +169,12 @@ def _success_response(data: Any, status: int = 200) -> tuple:
 @api_bp.route('/users', methods=['GET'])
 def list_users():
     """
-    GET /api/users - List all users with pagination support.
+    GET /api/users - List all users with pagination and filtering support.
     
     Query Parameters:
         page (int): Page number (default: 1)
         limit (int): Items per page (default: 10, max: 100)
+        role (str): Filter by role (optional): customer|admin|moderator
         
     Returns:
         200: JSON object with users array, total count, and page info
@@ -196,6 +197,9 @@ def list_users():
     except ValueError:
         return _error_response('Invalid pagination parameters', 400, 'invalid_parameters')
     
+    # Parse filter parameters
+    role_filter = request.args.get('role', '').strip()
+    
     # Validate pagination parameters
     if page < 1:
         return _error_response('Page must be >= 1', 400, 'invalid_page')
@@ -205,6 +209,10 @@ def list_users():
     with _data_lock:
         # Get all users and sanitize
         all_users = [_sanitize_user(user) for user in _users.values()]
+        
+        # Apply role filter if provided
+        if role_filter:
+            all_users = [user for user in all_users if user.get('role') == role_filter]
         
         # Calculate pagination
         total = len(all_users)
@@ -281,18 +289,28 @@ def create_user():
     with _data_lock:
         for user in _users.values():
             if user['email'].lower() == data['email'].lower():
-                return _error_response('Email already exists', 400, 'duplicate_email')
+                return _error_response('Email already exists', 409, 'duplicate_email')
         
-        # Create new user
+        # Create new user with required and optional fields
         user_id = str(uuid4())
+        now = datetime.utcnow().isoformat()
         new_user = {
             'id': user_id,
             'email': data['email'],
             'name': data['name'],
             'role': data['role'],
             'password': data['password'],  # Note: Plain text for demo only
-            'created_at': datetime.utcnow().isoformat()
+            'created_at': now,
+            'updated_at': now,  # Initialize updated_at to creation time
+            'is_active': data.get('is_active', True),
+            'status': data.get('status', 'active')
         }
+        
+        # Add optional fields if provided
+        optional_fields = ['age', 'department', 'phone', 'updated_at', 'last_login_at']
+        for field in optional_fields:
+            if field in data and data[field] is not None:
+                new_user[field] = data[field]
         
         _users[user_id] = new_user
         
@@ -400,14 +418,10 @@ def update_user(user_id: str):
                     return _error_response('Email already exists', 400, 'duplicate_email')
         
         # Update fields (partial update)
-        if 'email' in data:
-            user['email'] = data['email']
-        if 'name' in data:
-            user['name'] = data['name']
-        if 'role' in data:
-            user['role'] = data['role']
-        if 'password' in data:
-            user['password'] = data['password']
+        updatable_fields = ['email', 'name', 'role', 'password', 'age', 'department', 'phone', 'is_active', 'status']
+        for field in updatable_fields:
+            if field in data:
+                user[field] = data[field]
         
         # Add updated timestamp
         user['updated_at'] = datetime.utcnow().isoformat()
@@ -441,6 +455,142 @@ def delete_user(user_id: str):
         
         # Return 204 No Content
         return '', 204
+
+
+@api_bp.route('/users/search', methods=['GET'])
+def search_users():
+    """
+    GET /api/users/search - Search users by name or email.
+    
+    Query Parameters:
+        q (str): Search query (searches name and email fields)
+        limit (int): Maximum results to return (default: 10, max: 100)
+        
+    Returns:
+        200: JSON object with matching users array
+        400: Invalid parameters
+        
+    Example Response:
+        {
+            "data": {
+                "users": [...],
+                "total": 2,
+                "query": "john"
+            },
+            "status": "success"
+        }
+    """
+    # Parse query parameters
+    query = request.args.get('q', '').strip().lower()
+    
+    try:
+        limit = int(request.args.get('limit', 10))
+    except ValueError:
+        return _error_response('Invalid limit parameter', 400, 'invalid_parameters')
+    
+    # Validate parameters
+    if not query:
+        return _error_response('Search query (q) is required', 400, 'missing_query')
+    if limit < 1 or limit > 100:
+        return _error_response('Limit must be between 1 and 100', 400, 'invalid_limit')
+    
+    with _data_lock:
+        # Search in name and email fields (case-insensitive)
+        matching_users = []
+        for user in _users.values():
+            if (query in user.get('name', '').lower() or 
+                query in user.get('email', '').lower()):
+                matching_users.append(_sanitize_user(user))
+        
+        # Calculate total before applying limit
+        total_matches = len(matching_users)
+        
+        # Apply limit
+        limited_users = matching_users[:limit]
+        
+        return _success_response({
+            'users': limited_users,
+            'total': total_matches,
+            'page': 1,
+            'limit': limit,
+            'query': query
+        })
+
+
+@api_bp.route('/users/<user_id>/deactivate', methods=['POST'])
+def deactivate_user(user_id: str):
+    """
+    POST /api/users/<id>/deactivate - Deactivate a user account.
+    
+    Path Parameters:
+        user_id: User identifier
+        
+    Returns:
+        200: Updated user object with is_active=false
+        404: User not found
+        
+    Example Response:
+        {
+            "data": {
+                "id": "user-uuid",
+                "email": "user@example.com",
+                "name": "User Name",
+                "is_active": false,
+                "status": "inactive"
+            },
+            "status": "success"
+        }
+    """
+    with _data_lock:
+        user = _users.get(user_id)
+        
+        if not user:
+            return _error_response(f'User not found: {user_id}', 404, 'user_not_found')
+        
+        # Deactivate user
+        user['is_active'] = False
+        user['status'] = 'inactive'
+        user['updated_at'] = datetime.utcnow().isoformat()
+        
+        return _success_response(_sanitize_user(user))
+
+
+@api_bp.route('/users/<user_id>/activate', methods=['POST'])
+def activate_user(user_id: str):
+    """
+    POST /api/users/<id>/activate - Activate a user account.
+    
+    Path Parameters:
+        user_id: User identifier
+        
+    Returns:
+        200: Updated user object with is_active=true
+        404: User not found
+        
+    Example Response:
+        {
+            "data": {
+                "id": "user-uuid",
+                "email": "user@example.com",
+                "name": "User Name",
+                "is_active": true,
+                "status": "active"
+            },
+            "status": "success"
+        }
+    """
+    with _data_lock:
+        user = _users.get(user_id)
+        
+        if not user:
+            return _error_response(f'User not found: {user_id}', 404, 'user_not_found')
+        
+        # Activate user
+        user['is_active'] = True
+        user['status'] = 'active'
+        user['updated_at'] = datetime.utcnow().isoformat()
+        
+        return _success_response(_sanitize_user(user))
 
 
 # ============================================================================

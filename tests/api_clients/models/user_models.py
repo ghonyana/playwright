@@ -35,13 +35,17 @@ class UserRole(str, Enum):
     - ADMIN: Full system access including user management
     - USER: Standard authenticated user access
     - EDITOR: Content creation and editing permissions
+    - MODERATOR: Moderation and management permissions (mapped from editor in MCP)
     - VIEWER: Read-only access to resources
+    - CUSTOMER: Customer-level access with limited permissions (mapped from viewer in MCP)
     - GUEST: Limited unauthenticated access
     """
     ADMIN = "admin"
     USER = "user"
     EDITOR = "editor"
+    MODERATOR = "moderator"
     VIEWER = "viewer"
+    CUSTOMER = "customer"
     GUEST = "guest"
 
 
@@ -333,9 +337,9 @@ class UserResponse(BaseModel):
         description="Phone number",
         examples=["+12125551234"]
     )
-    is_active: bool = Field(
-        ...,
-        description="Whether account is active",
+    is_active: Optional[bool] = Field(
+        default=True,
+        description="Whether account is active (not always returned by API)",
         examples=[True]
     )
     status: UserStatus = Field(
@@ -348,9 +352,9 @@ class UserResponse(BaseModel):
         description="User creation timestamp",
         examples=["2024-01-15T10:30:00Z"]
     )
-    updated_at: datetime = Field(
-        ...,
-        description="Last update timestamp",
+    updated_at: Optional[datetime] = Field(
+        default=None,
+        description="Last update timestamp (not always returned by API)",
         examples=["2024-01-15T12:45:00Z"]
     )
     last_login_at: Optional[datetime] = Field(

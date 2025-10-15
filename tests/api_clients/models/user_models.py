@@ -87,9 +87,9 @@ class CreateUserRequest(BaseModel):
         examples=["John Doe"]
     )
     role: UserRole = Field(
-        default=UserRole.USER,
+        default=UserRole.CUSTOMER,
         description="User role determining permissions",
-        examples=["admin", "user", "guest"]
+        examples=["admin", "customer", "moderator"]
     )
     password: str = Field(
         ...,

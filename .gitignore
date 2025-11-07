@@ -1,0 +1,277 @@
+# ==============================================================================
+# Python Test Automation Framework .gitignore
+# ==============================================================================
+# Comprehensive ignore patterns for Python, pytest, Playwright, and related
+# test automation artifacts as specified in the Agent Action Plan
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Python Bytecode and Cache
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# ------------------------------------------------------------------------------
+# Build and Distribution Artifacts
+# ------------------------------------------------------------------------------
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+pip-wheel-metadata/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# pip artifacts
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ------------------------------------------------------------------------------
+# Virtual Environments
+# ------------------------------------------------------------------------------
+venv/
+.venv/
+ENV/
+env/
+.virtualenv/
+env.bak/
+venv.bak/
+pythonenv*/
+
+# ------------------------------------------------------------------------------
+# pytest Artifacts and Cache
+# ------------------------------------------------------------------------------
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+*.cover
+*.py,cover
+.hypothesis/
+test-results/
+junit.xml
+
+# pytest-xdist
+.pytest_cache/
+
+# ------------------------------------------------------------------------------
+# Playwright Artifacts
+# ------------------------------------------------------------------------------
+.playwright/
+playwright/.local-browsers/
+playwright/.auth/
+playwright-report/
+traces/
+videos/
+screenshots/
+test-results/
+
+# Playwright state
+playwright-state.json
+
+# ------------------------------------------------------------------------------
+# Allure Reporting
+# ------------------------------------------------------------------------------
+allure-results/
+allure-report/
+.allure/
+
+# ------------------------------------------------------------------------------
+# IDE Configuration Files
+# ------------------------------------------------------------------------------
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm / IntelliJ
+.idea/
+
+# Eclipse
+.project
+.classpath
+.settings/
+.pydevproject
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+\#*\#
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ------------------------------------------------------------------------------
+# Environment and Secret Files
+# ------------------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+.env.test.local
+.env.production.local
+
+# Keep the example file
+!.env.example
+
+# ------------------------------------------------------------------------------
+# Test Coverage Reports
+# ------------------------------------------------------------------------------
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.coveragerc
+.pytest_coverage/
+
+# ------------------------------------------------------------------------------
+# Operating System Files
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.DS_Store?
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.fseventsd
+.TemporaryItems
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ------------------------------------------------------------------------------
+# Log Files
+# ------------------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pip-log.txt
+
+# ------------------------------------------------------------------------------
+# Type Checking and Linting
+# ------------------------------------------------------------------------------
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff
+.ruff_cache/
+
+# Pylint
+.pylint.d/
+
+# ------------------------------------------------------------------------------
+# Database Files (Test Databases)
+# ------------------------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# MCP Server test databases
+mcp_servers/fastapi_mcp/*.db
+mcp_servers/fastapi_mcp/*.sqlite
+mcp_servers/fastapi_mcp/*.sqlite3
+
+# ------------------------------------------------------------------------------
+# Temporary Files
+# ------------------------------------------------------------------------------
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# ------------------------------------------------------------------------------
+# MCP Server Specific
+# ------------------------------------------------------------------------------
+# FastAPI MCP Server
+mcp_servers/fastapi_mcp/*.db
+mcp_servers/fastapi_mcp/temp/
+mcp_servers/fastapi_mcp/.uvicorn/
+
+# Playwright MCP Server
+mcp_servers/playwright_mcp/sessions/
+mcp_servers/playwright_mcp/temp/
+
+# ------------------------------------------------------------------------------
+# LLM Integration Specific
+# ------------------------------------------------------------------------------
+.ollama/
+.cache/
+llm/cache/
+llm/.cache/
+
+# LLM generated artifacts (before human review)
+**/generated_scenarios_temp/
+
+# ------------------------------------------------------------------------------
+# Documentation Build Artifacts
+# ------------------------------------------------------------------------------
+docs/_build/
+docs/_static/
+docs/_templates/
+site/
+
+# ------------------------------------------------------------------------------
+# Package Manager
+# ------------------------------------------------------------------------------
+*.lock
+
+# ------------------------------------------------------------------------------
+# Python Project Metadata
+# ------------------------------------------------------------------------------
+.python-version
+
+# Keep requirements files
+!requirements*.txt
+!pyproject.toml
+
+# ------------------------------------------------------------------------------
+# Jupyter Notebooks
+# ------------------------------------------------------------------------------
+.ipynb_checkpoints/
+*.ipynb
+
+# ------------------------------------------------------------------------------
+# Pre-commit
+# ------------------------------------------------------------------------------
+.pre-commit-config.yaml.backup

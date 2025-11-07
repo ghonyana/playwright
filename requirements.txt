@@ -1,0 +1,104 @@
+# ==============================================================================
+# Production Dependencies for Test Automation Framework
+# ==============================================================================
+# This file contains pinned production dependencies for test execution.
+# All versions are specified exactly to ensure deterministic installation
+# across environments and prevent unexpected breaking changes.
+#
+# Requirements from Agent Action Plan Section 0.3.9
+# Python Version Requirement: 3.9+ (minimum), 3.11 or 3.12 recommended
+#
+# For development dependencies (ruff, mypy, pre-commit), see requirements-dev.txt
+# For MCP server dependencies, see mcp_servers/fastapi_mcp/requirements.txt
+# For LLM integration dependencies, see llm/requirements.txt
+# ==============================================================================
+
+# ==============================================================================
+# Core Testing Framework Dependencies (Section 0.3.1)
+# ==============================================================================
+# pytest 8.4.2 - Latest stable core test framework and runner
+pytest==8.4.2
+
+# pytest-bdd 8.1.0 - Gherkin/BDD support with official parser for spec compliance
+pytest-bdd==8.1.0
+
+# playwright 1.55.0 - Browser automation library (requires Python 3.9+)
+playwright==1.55.0
+
+# pytest-playwright 0.6.2 - Playwright integration for pytest
+pytest-playwright==0.6.2
+
+# pytest-xdist 3.6.1 - Parallel test execution support
+pytest-xdist==3.6.1
+
+# pytest-timeout 2.3.1 - Test timeout management
+pytest-timeout==2.3.1
+
+# pytest-asyncio 0.25.2 - Async test support for modern async/await patterns
+pytest-asyncio==0.25.2
+
+# ==============================================================================
+# API Testing Dependencies (Section 0.3.2)
+# ==============================================================================
+# httpx 0.28.1 - Modern async/sync HTTP client for API testing
+httpx==0.28.1
+
+# pydantic 2.10.5 - Data validation and typing for API models (v2 with enhanced performance)
+pydantic==2.10.5
+
+# pytest-httpx 0.35.0 - httpx mocking fixture for tests
+pytest-httpx==0.35.0
+
+# ==============================================================================
+# Reporting and Observability Dependencies (Section 0.3.6)
+# ==============================================================================
+# allure-pytest 2.15.0 - Allure reporting integration (compatible with pytest 8.x)
+allure-pytest==2.15.0
+
+# pytest-html 4.1.1 - Fallback HTML reporting
+pytest-html==4.1.1
+
+# pytest-json-report 1.5.0 - JSON test results export
+pytest-json-report==1.5.0
+
+# ==============================================================================
+# Utility and Supporting Dependencies (Section 0.3.8)
+# ==============================================================================
+# python-dotenv 1.0.1 - Environment variable management from .env files
+python-dotenv==1.0.1
+
+# faker 37.11.0 - Realistic test data generation (updated to latest stable)
+faker==37.11.0
+
+# tenacity 9.1.2 - Retry logic for flaky operations (updated to latest stable)
+tenacity==9.1.2
+
+# loguru 0.7.3 - Enhanced logging with better formatting and context
+loguru==0.7.3
+
+# ==============================================================================
+# Sample Application Dependencies
+# ==============================================================================
+# Flask 3.1.0 - Lightweight web framework for sample/demo application
+flask==3.1.0
+
+# flask-cors 5.0.0 - CORS support for API endpoints in sample application
+flask-cors==5.0.0
+
+# ==============================================================================
+# Installation Instructions
+# ==============================================================================
+# To install all production dependencies:
+#   pip install -r requirements.txt
+#
+# To install Playwright browser binaries after package installation:
+#   python -m playwright install chromium
+#   # Or for all browsers: python -m playwright install chromium firefox webkit
+#
+# To install both production and development dependencies:
+#   pip install -r requirements-dev.txt
+#   # (requirements-dev.txt includes this file via -r requirements.txt)
+#
+# For CI/CD environments, consider using the Playwright Docker image:
+#   mcr.microsoft.com/playwright/python:v1.55.0
+# ==============================================================================
